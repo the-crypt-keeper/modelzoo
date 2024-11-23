@@ -108,7 +108,9 @@ class FolderZoo(Zoo):
                                 model_format = 'awq'
                             elif 'exl2' in folder_name:
                                 model_format = 'exl2'
-                        
+                            elif 'fp16' in folder_name:
+                                model_format = 'fp16'
+                                
                         # Calculate total size of the folder
                         total_size = sum(f.stat().st_size for f in dir_path.rglob('*') if f.is_file())
                         
