@@ -19,9 +19,11 @@ class RuntimeParameter:
     param_description: str
     param_type: str
     param_default: Any
+    param_enum: Dict[str, Any] = None
 
     def __str__(self) -> str:
-        return f"Parameter({self.param_name}: {self.param_type}, default={self.param_default})"
+        enum_str = f", options={list(self.param_enum.keys())}" if self.param_enum else ""
+        return f"Parameter({self.param_name}: {self.param_type}, default={self.param_default}{enum_str})"
 
 @dataclass
 class Environment:

@@ -19,8 +19,15 @@ class LlamaRuntime(Runtime):
             RuntimeParameter(
                 param_name="context",
                 param_description="Context size",
-                param_type="int",
-                param_default=4096
+                param_type="enum",
+                param_default="4K",
+                param_enum={
+                    "4K": 4096,
+                    "6K": 6144,
+                    "8K": 8192,
+                    "16K": 16384,
+                    "32K": 32768
+                }
             ),
             RuntimeParameter(
                 param_name="num_gpu_layers",
@@ -71,10 +78,12 @@ class LlamaRuntime(Runtime):
             raise ValueError(f"Unsupported model format: {model.model_format}")
 
         # Build command line
+        context_param = next(param for param in self.runtime_params if param.param_name == "context")
+        context_value = context_param.param_enum[param_list.get("context", "4K")]
         cmd = [
             self.bin_path,
             "-m", model.model_id,
-            "-c", str(param_list.get("context", 4096)),
+            "-c", str(context_value),
             "-ngl", str(param_list.get("num_gpu_layers", 999)),
             "-sm", str(param_list.get("split_mode", "row")),
             "--host", listener.host,
@@ -116,8 +125,15 @@ class KoboldCppRuntime(Runtime):
             RuntimeParameter(
                 param_name="contextsize",
                 param_description="Context size",
-                param_type="int",
-                param_default=4096
+                param_type="enum",
+                param_default="4K",
+                param_enum={
+                    "4K": 4096,
+                    "6K": 6144,
+                    "8K": 8192,
+                    "16K": 16384,
+                    "32K": 32768
+                }
             ),
             RuntimeParameter(
                 param_name="gpulayers",
@@ -168,10 +184,12 @@ class KoboldCppRuntime(Runtime):
             raise ValueError(f"Unsupported model format: {model.model_format}")
 
         # Build command line
+        context_param = next(param for param in self.runtime_params if param.param_name == "contextsize")
+        context_value = context_param.param_enum[param_list.get("contextsize", "4K")]
         cmd = [
             self.bin_path,
             "--model", model.model_id,
-            "--contextsize", str(param_list.get("contextsize", 4096)),
+            "--contextsize", str(context_value),
             "--gpulayers", str(param_list.get("gpulayers", -1)),
             "--host", listener.host,
             "--port", str(listener.port),
