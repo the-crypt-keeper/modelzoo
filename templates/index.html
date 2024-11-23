@@ -74,8 +74,19 @@
             gap: 10px;
         }
         .radio-group label {
-            display: flex;
-            align-items: center;
+            display: inline-block;
+            padding: 5px 10px;
+            background-color: #f0f0f0;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .radio-group input[type="radio"] {
+            display: none;
+        }
+        .radio-group input[type="radio"]:checked + label {
+            background-color: #007bff;
+            color: white;
         }
         h2 {
             margin: 5px;
@@ -147,10 +158,8 @@
                 <label>ENV:</label>
                 <div id="env-select" class="radio-group">
                     {% for name, env in environments.items() %}
-                    <label>
-                        <input type="radio" name="environment" value="{{ name }}" {% if loop.first %}checked{% endif %}>
-                        {{ name }}
-                    </label>
+                    <input type="radio" name="environment" id="env-{{ name }}" value="{{ name }}" {% if loop.first %}checked{% endif %}>
+                    <label for="env-{{ name }}">{{ name }}</label>
                     {% endfor %}
                 </div>
             </div>
@@ -159,10 +168,8 @@
                 <label>RT:</label>
                 <div id="runtime-select" class="radio-group">
                     {% for name, runtime in runtimes.items() %}
-                    <label>
-                        <input type="radio" name="runtime" value="{{ name }}" {% if loop.first %}checked{% endif %} onchange="loadRuntimeParams()">
-                        {{ name }}
-                    </label>
+                    <input type="radio" name="runtime" id="runtime-{{ name }}" value="{{ name }}" {% if loop.first %}checked{% endif %} onchange="loadRuntimeParams()">
+                    <label for="runtime-{{ name }}">{{ name }}</label>
                     {% endfor %}
                 </div>
             </div>
