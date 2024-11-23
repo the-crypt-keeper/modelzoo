@@ -3,6 +3,7 @@ from typing import Any, List, Dict
 import subprocess
 import threading
 from collections import deque
+import requests
 import os
 
 @dataclass
@@ -115,10 +116,11 @@ class RunningModel:
         Returns:
             bool: True if server is ready, False otherwise
         """
-        # Basic implementation - check if process is running
-        # In a real implementation, you might want to check if the server
-        # is actually accepting connections
-        return self.process is not None and self.process.poll() is None
+        try:
+            response = requests.get(f"http://{self.listener.host}:{self.listener.port}/v1/models", timeout=2)
+            return response.status_code == 200
+        except requests.RequestException:
+            return False
 
     def logs(self) -> List[str]:
         """Retrieve recent log output.
