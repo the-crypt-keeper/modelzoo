@@ -18,6 +18,19 @@
             border: 1px solid #ccc;
             border-radius: 5px;
         }
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        .status-ready {
+            background-color: green;
+        }
+        .status-starting {
+            background-color: yellow;
+        }
         .logs {
             font-family: monospace;
             background: #f0f0f0;
@@ -113,8 +126,10 @@
             <h2>Running Models</h2>
             {% for running in running_models %}
             <div class="running-model">
-                <h3>{{ running.model.model_name }}</h3>
-                <p>Status: {{ "Ready" if running.ready() else "Starting" }}</p>
+                <h3>
+                    <span class="status-indicator {{ 'status-ready' if running.ready() else 'status-starting' }}"></span>
+                    {{ running.model.model_name }}
+                </h3>
                 <p>Listener: {{ running.listener }}</p>
                 <button onclick="toggleLogs({{ loop.index0 }})">Show/Hide Logs</button>
                 <button onclick="stopModel({{ loop.index0 }})">Stop</button>
