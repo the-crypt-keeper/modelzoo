@@ -157,7 +157,7 @@
                     <span class="status-indicator {{ 'status-ready' if running.ready() else 'status-starting' }}"></span>
                     {{ running.model.model_name }}
                 </h3>
-                <p>{{ running.listener }} ({{ running.runtime.runtime_name }})</p>
+                <p>{{ running.listener }} via <i>{{ running.runtime.runtime_name }}</i> on <i>{{ running.environment.name }}</i></p>
                 <button onclick="toggleLogs({{ loop.index0 }})">Show/Hide Logs</button>
                 <button onclick="stopModel({{ loop.index0 }})">Stop</button>
                 <div class="logs" id="logs-{{ loop.index0 }}" style="display: none;"></div>
