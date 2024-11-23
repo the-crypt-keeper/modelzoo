@@ -67,7 +67,7 @@ class ZooKeeper:
         for runtime_config in config.get('runtimes', []):
             try:
                 runtime_class = eval(runtime_config['class'])
-                runtime = runtime_class(**runtime_config['params'])
+                runtime = runtime_class(name=runtime_config['name'], **runtime_config['params'])
                 self.runtimes[runtime_config['name']] = runtime
             except Exception as e:
                 print(f"Error creating runtime '{runtime_config['name']}' of class '{runtime_config['class']}': {str(e)}")

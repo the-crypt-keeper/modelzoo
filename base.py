@@ -6,6 +6,12 @@ from collections import deque
 import requests
 import os
 
+class Runtime:
+    pass
+        
+class Zoo:
+    pass
+
 @dataclass
 class RuntimeParameter:
     """Data class describing a configurable runtime parameter."""
@@ -58,8 +64,8 @@ class Model:
 class RunningModel:
     """Class representing and controlling a running model instance."""
 
-    def __init__(self, model: Model, environment: Environment, 
-                 listener: Listener, command: List[str], runtime: 'Runtime'):
+    def __init__(self, runtime: Runtime, model: Model, environment: Environment, 
+                 listener: Listener, command: List[str]):
         """Initialize a new running model instance.
         
         Args:
@@ -156,9 +162,3 @@ class RunningModel:
         status = "running" if self.ready() else "stopped"
         return (f"RunningModel({self.model.model_name} @ {self.listener}, "
                 f"runtime={self.runtime.__class__.__name__}, status={status})")
-        
-class Runtime:
-    pass
-        
-class Zoo:
-    pass

@@ -4,13 +4,13 @@ from typing import Any, List, Dict
 class LlamaRuntime(Runtime):
     """Runtime implementation for llama.cpp server."""
 
-    def __init__(self, bin_path: str):
+    def __init__(self, name:str, bin_path: str):
         """Initialize LlamaRuntime with path to llama-server binary.
         
         Args:
             bin_path (str): Path to llama-server executable
         """
-        self.runtime_name = "llama.cpp"
+        self.runtime_name = name
         self.runtime_formats = ["gguf"]
         self.bin_path = bin_path
         
@@ -91,6 +91,7 @@ class LlamaRuntime(Runtime):
             cmd.extend(extra_args.split())
 
         return RunningModel(
+            runtime=self,
             model=model,
             environment=environment,
             listener=listener,
@@ -100,13 +101,13 @@ class LlamaRuntime(Runtime):
 class KoboldCppRuntime(Runtime):
     """Runtime implementation for KoboldCpp server."""
 
-    def __init__(self, bin_path: str):
+    def __init__(self, name:str, bin_path: str):
         """Initialize KoboldCppRuntime with path to koboldcpp binary.
         
         Args:
             bin_path (str): Path to koboldcpp executable
         """
-        self.runtime_name = "koboldcpp"
+        self.runtime_name = name
         self.runtime_formats = ["gguf"]
         self.bin_path = bin_path
         
@@ -190,6 +191,7 @@ class KoboldCppRuntime(Runtime):
             cmd.extend(extra_args.split())
 
         return RunningModel(
+            runtime=self,            
             model=model,
             environment=environment,
             listener=listener,
