@@ -83,7 +83,7 @@ class RunningModel:
         """Start the underlying process and log collection."""
         # Create environment dict for subprocess
         env = os.environ.copy()
-        env.update(self.environment.vars)
+        env.update({k: str(v) for k, v in self.environment.vars.items()})
 
         # Start process
         print(env)
