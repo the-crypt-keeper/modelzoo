@@ -8,6 +8,10 @@ from base import *
 from zoo import *
 from runtime import *
 
+# Import all zoo and runtime classes
+from zoo import FolderZoo
+from runtime import LlamaRuntime, KoboldCppRuntime
+
 def human_size(size: int) -> str:
     """Convert size in bytes to human readable string.
     
@@ -50,16 +54,26 @@ class ZooKeeper:
             
         # Load zoos
         for zoo_config in config.get('zoos', []):
-            if zoo_config['class'] == 'FolderZoo':
-                zoo = FolderZoo(**zoo_config['params'])
+            try:
+                zoo_class = eval(zoo_config['class'])
+                zoo = zoo_class(**zoo_config['params'])
                 self.zoos[zoo_config['name']] = zoo
                 self.zoo_enabled[zoo_config['name']] = True
+            except NameError:
+                print(f"Error: Zoo class '{zoo_config['class']}' not found.")
+            except Exception as e:
+                print(f"Error creating zoo '{zoo_config['name']}': {str(e)}")
 
         # Load runtimes
         for runtime_config in config.get('runtimes', []):
-            if runtime_config['name'] == 'LlamaRuntime':
-                runtime = LlamaRuntime(**runtime_config['params'])
+            try:
+                runtime_class = eval(runtime_config['class'])
+                runtime = runtime_class(**runtime_config['params'])
                 self.runtimes[runtime_config['name']] = runtime
+            except NameError:
+                print(f"Error: Runtime class '{runtime_config['class']}' not found.")
+            except Exception as e:
+                print(f"Error creating runtime '{runtime_config['name']}': {str(e)}")
 
         # Load environments
         for env_config in config.get('envs', []):
