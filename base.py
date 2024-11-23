@@ -59,7 +59,7 @@ class RunningModel:
     """Class representing and controlling a running model instance."""
 
     def __init__(self, model: Model, environment: Environment, 
-                 listener: Listener, command: List[str]):
+                 listener: Listener, command: List[str], runtime: 'Runtime'):
         """Initialize a new running model instance.
         
         Args:
@@ -67,11 +67,13 @@ class RunningModel:
             environment (Environment): Environment configuration
             listener (Listener): Network binding configuration
             command (List[str]): Command line as list of strings
+            runtime (Runtime): The runtime that created this instance
         """
         self.model = model
         self.environment = environment
         self.listener = listener
         self.command = command
+        self.runtime = runtime
         self.process = None
         self.log_buffer = deque(maxlen=100)  # Keep last 100 lines
         self._log_thread = None
@@ -153,7 +155,7 @@ class RunningModel:
         """
         status = "running" if self.ready() else "stopped"
         return (f"RunningModel({self.model.model_name} @ {self.listener}, "
-                f"status={status})")
+                f"runtime={self.runtime.__class__.__name__}, status={status})")
         
 class Runtime:
     pass
