@@ -227,7 +227,7 @@
             
             function updateLogs() {
                 $.get(`/api/model/${idx}/logs`, function(logs) {
-                    $(`#logs-${idx}`).html(logs.join('<br>'));
+                    $(`#logs-${idx}`).html(logs.reverse().join('<br>'));
                 });
             }
             
