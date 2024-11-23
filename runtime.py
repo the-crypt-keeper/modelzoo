@@ -129,7 +129,7 @@ class KoboldCppRuntime(Runtime):
                 param_name="flashattention",
                 param_description="Enable flash attention",
                 param_type="bool",
-                param_default=False
+                param_default=True
             ),
             RuntimeParameter(
                 param_name="quantkv",
