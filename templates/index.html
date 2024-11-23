@@ -251,6 +251,12 @@
                     input = `<input type="number" 
                                     name="${param.param_name}" 
                                     value="${param.param_default}">`;
+                } else if (param.param_type === 'enum') {
+                    input = `<select name="${param.param_name}">
+                        ${Object.entries(param.param_enum).map(([key, value]) => 
+                            `<option value="${key}" ${key === param.param_default ? 'selected' : ''}>${key} (${value})</option>`
+                        ).join('')}
+                    </select>`;
                 } else {
                     input = `<input type="text" 
                                     name="${param.param_name}" 
@@ -273,15 +279,17 @@
             const port = $('#port-input').val();
             
             const params = {};
-            $('#runtime-params input').each(function() {
+            $('#runtime-params input, #runtime-params select').each(function() {
                 const $input = $(this);
                 const name = $input.attr('name');
-                const type = runtimes[runtime].runtime_params.find(p => p.param_name === name).param_type;
+                const param = runtimes[runtime].runtime_params.find(p => p.param_name === name);
                 
-                if (type === 'bool') {
+                if (param.param_type === 'bool') {
                     params[name] = $input.is(':checked');
-                } else if (type === 'int') {
+                } else if (param.param_type === 'int') {
                     params[name] = parseInt($input.val(), 10);
+                } else if (param.param_type === 'enum') {
+                    params[name] = $input.val();
                 } else {
                     params[name] = $input.val();
                 }
