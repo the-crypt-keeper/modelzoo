@@ -240,14 +240,23 @@
         function pollLogs(idx) {
             if (!window.logPollers) window.logPollers = {};
             
-            function updateLogs() {
+            function updateStatusAndLogs() {
                 $.get(`/api/model/${idx}/logs`, function(logs) {
                     $(`#logs-${idx}`).html(logs.reverse().join('<br>'));
                 });
+
+                $.get(`/api/model/${idx}/status`, function(status) {
+                    const statusIndicator = $(`#logs-${idx}`).closest('.running-model').find('.status-indicator');
+                    if (status.ready) {
+                        statusIndicator.removeClass('status-starting').addClass('status-ready');
+                    } else {
+                        statusIndicator.removeClass('status-ready').addClass('status-starting');
+                    }
+                });
             }
             
-            updateLogs();
-            window.logPollers[idx] = setInterval(updateLogs, 5000);
+            updateStatusAndLogs();
+            window.logPollers[idx] = setInterval(updateStatusAndLogs, 2000);
         }
 
         function stopModel(idx) {
