@@ -99,6 +99,16 @@ class FolderZoo(Zoo):
                         quant_config = config.get('quantization_config', {})
                         model_format = quant_config.get('quant_method', 'unknown')
                         
+                        # If model_format is still unknown, apply heuristics
+                        if model_format == 'unknown':
+                            folder_name = dir_path.name.lower()
+                            if 'gptq' in folder_name:
+                                model_format = 'gptq'
+                            elif 'awq' in folder_name:
+                                model_format = 'awq'
+                            elif 'exl2' in folder_name:
+                                model_format = 'exl2'
+                        
                         # Calculate total size of the folder
                         total_size = sum(f.stat().st_size for f in dir_path.rglob('*') if f.is_file())
                         
