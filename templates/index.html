@@ -151,12 +151,25 @@
             const container = $('#runtime-params').empty();
             
             params.forEach(param => {
+                let input;
+                if (param.param_type === 'bool') {
+                    input = `<input type="checkbox" 
+                                    name="${param.param_name}" 
+                                    ${param.param_default ? 'checked' : ''}>`;
+                } else if (param.param_type === 'int') {
+                    input = `<input type="number" 
+                                    name="${param.param_name}" 
+                                    value="${param.param_default}">`;
+                } else {
+                    input = `<input type="text" 
+                                    name="${param.param_name}" 
+                                    value="${param.param_default}">`;
+                }
+                
                 container.append(`
                     <div>
                         <label>${param.param_name}:</label>
-                        <input type="text" 
-                               name="${param.param_name}" 
-                               value="${param.param_default}">
+                        ${input}
                         <span>${param.param_description}</span>
                     </div>
                 `);
@@ -171,14 +184,24 @@
             
             const params = {};
             $('#runtime-params input').each(function() {
-                params[$(this).attr('name')] = $(this).val();
+                const $input = $(this);
+                const name = $input.attr('name');
+                const type = runtimes[runtime].runtime_params.find(p => p.param_name === name).param_type;
+                
+                if (type === 'bool') {
+                    params[name] = $input.is(':checked');
+                } else if (type === 'int') {
+                    params[name] = parseInt($input.val(), 10);
+                } else {
+                    params[name] = $input.val();
+                }
             });
 
             $.post('/api/model/launch', {
                 model_id: modelId,
                 runtime: runtime,
                 environment: env,
-                port: port,
+                port: parseInt(port, 10),
                 params: JSON.stringify(params)
             }, function() {
                 $('#launch-dialog').hide();
