@@ -1,6 +1,8 @@
 from base import *
 from pathlib import Path
 from typing import Any, List, Dict
+import json
+import shutil
 
 class FolderZoo(Zoo):
     """Zoo implementation that discovers GGUF models in a filesystem folder."""
@@ -47,12 +49,8 @@ class FolderZoo(Zoo):
                 
         return model_parts
 
-    def catalog(self) -> List[Model]:
-        """Scan folder path and return list of discovered GGUF models.
-        
-        Returns:
-            List[Model]: List of models found in the folder
-        """
+    def _gguf_catalog(self) -> List[Model]:
+        """Scan folder path and return list of discovered GGUF models."""
         models = []
         
         # Get all .gguf files
@@ -80,10 +78,52 @@ class FolderZoo(Zoo):
                 models.append(model)
                 
             except Exception as e:
-                print(f"Warning: Error processing {base_name}: {e}")
+                print(f"Warning: Error processing GGUF model {base_name}: {e}")
                 continue
                 
         return models
+
+    def _hf_catalog(self) -> List[Model]:
+        """Scan folder path and return list of discovered HF models."""
+        models = []
+        
+        # Get all directories
+        for dir_path in self.path.iterdir():
+            if dir_path.is_dir():
+                config_file = dir_path / "config.json"
+                if config_file.exists():
+                    try:
+                        with open(config_file, 'r') as f:
+                            config = json.load(f)
+                        
+                        quant_config = config.get('quantization_config', {})
+                        model_format = quant_config.get('quant_method', 'unknown')
+                        
+                        # Calculate total size of the folder
+                        total_size = sum(f.stat().st_size for f in dir_path.rglob('*') if f.is_file())
+                        
+                        model = Model(
+                            model_id=str(dir_path.absolute()),
+                            model_format=model_format,
+                            model_name=dir_path.name,
+                            model_size=total_size
+                        )
+                        models.append(model)
+                    except Exception as e:
+                        print(f"Warning: Error processing HF model {dir_path.name}: {e}")
+                        continue
+        
+        return models
+
+    def catalog(self) -> List[Model]:
+        """Scan folder path and return list of discovered GGUF and HF models.
+        
+        Returns:
+            List[Model]: List of models found in the folder
+        """
+        gguf_models = self._gguf_catalog()
+        hf_models = self._hf_catalog()
+        return gguf_models + hf_models
 
     def __str__(self) -> str:
         return f"FolderZoo(path={self.path})"
