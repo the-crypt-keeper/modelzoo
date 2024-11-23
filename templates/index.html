@@ -195,10 +195,11 @@
         const runtimes = {{ runtimes | tojson | safe }};
         const allModels = {{ available_models | tojson | safe }};
 
-        function populateTable(models) {
+        function populateTable(models, limit = null) {
             const tbody = document.querySelector('#model-table tbody');
             tbody.innerHTML = '';
-            models.forEach(model => {
+            const displayModels = limit ? models.slice(0, limit) : models;
+            displayModels.forEach(model => {
                 tbody.innerHTML += `
                     <tr class="model-row">
                         <td>${model.model_name}</td>
@@ -216,18 +217,19 @@
             const btn = document.getElementById('show-more-btn');
             const chevron = btn.querySelector('.chevron');
 
-            if (btn.textContent.includes('Show Less')) {
-                populateTable(allModels.slice(0, 10));
-                btn.innerHTML = 'Show More <span class="chevron">▼</span>';
-            } else {
+            if (btn.textContent.includes('Show More')) {
                 populateTable(allModels);
                 btn.innerHTML = 'Show Less <span class="chevron">▲</span>';
+            } else {
+                populateTable(allModels, 10);
+                btn.innerHTML = 'Show More <span class="chevron">▼</span>';
             }
         }
 
         // Populate table on page load
         document.addEventListener('DOMContentLoaded', function() {
-            populateTable(allModels);
+            populateTable(allModels, 10);
+            document.getElementById('show-more-btn').innerHTML = 'Show More <span class="chevron">▼</span>';
         });
 
         function humanSize(bytes) {
