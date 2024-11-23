@@ -59,6 +59,30 @@
         .zoo-list {
             margin-bottom: 10px;
         }
+        .launch-controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+        .port-input-container {
+            display: flex;
+            align-items: center;
+            width: 50%;
+        }
+        .port-input {
+            width: 50%;
+            margin-right: 10px;
+        }
+        .launch-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .separator {
+            margin: 10px 0;
+            border: none;
+            border-top: 1px solid #ccc;
+        }
         .radio-group-container {
             display: flex;
             align-items: center;
@@ -165,13 +189,18 @@
             <div id="runtime-params">
             </div>
 
-            <div>
-                <input type="number" id="port-input" value="{{ random_port }}">
-                <span>Listen Port</span>
-            </div>
+            <hr class="separator">
 
-            <button onclick="launchModel()">Launch</button>
-            <button onclick="$('#launch-dialog').hide()">Cancel</button>
+            <div class="launch-controls">
+                <div class="port-input-container">
+                    <input type="number" id="port-input" class="port-input" value="{{ random_port }}">
+                    <span>Listen Port</span>
+                </div>
+                <div class="launch-buttons">
+                    <button onclick="launchModel()">Launch</button>
+                    <button onclick="$('#launch-dialog').hide()">Cancel</button>
+                </div>
+            </div>
         </div>
 
         <div class="running-list">
