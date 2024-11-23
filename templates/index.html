@@ -59,6 +59,17 @@
         .zoo-list {
             margin-bottom: 10px;
         }
+        .radio-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            margin-right: 10px;
+        }
         h2 {
             margin: 5px;
         }
@@ -125,17 +136,29 @@
     <div class="right-column">
         <div id="launch-dialog">
             <h2>Launch Model: <span id="launch-model-name"></span></h2>
-            <select id="runtime-select" onchange="loadRuntimeParams()">
-                {% for name, runtime in runtimes.items() %}
-                <option value="{{ name }}">{{ name }}</option>
-                {% endfor %}
-            </select>
+            <div>
+                <label>Environment:</label>
+                <div id="env-select" class="radio-group">
+                    {% for name, env in environments.items() %}
+                    <label>
+                        <input type="radio" name="environment" value="{{ name }}" {% if loop.first %}checked{% endif %}>
+                        {{ name }}
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
             
-            <select id="env-select">
-                {% for name, env in environments.items() %}
-                <option value="{{ name }}">{{ name }}</option>
-                {% endfor %}
-            </select>
+            <div>
+                <label>Runtime:</label>
+                <div id="runtime-select" class="radio-group">
+                    {% for name, runtime in runtimes.items() %}
+                    <label>
+                        <input type="radio" name="runtime" value="{{ name }}" {% if loop.first %}checked{% endif %} onchange="loadRuntimeParams()">
+                        {{ name }}
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
 
             <div id="runtime-params">
             </div>
@@ -237,7 +260,7 @@
         }
 
         function loadRuntimeParams() {
-            const runtime = $('#runtime-select').val();
+            const runtime = $('input[name="runtime"]:checked').val();
             const params = runtimes[runtime].runtime_params;
             const container = $('#runtime-params').empty();
             
@@ -274,8 +297,8 @@
 
         function launchModel() {
             const modelId = $('#launch-dialog').data('modelId');
-            const runtime = $('#runtime-select').val();
-            const env = $('#env-select').val();
+            const runtime = $('input[name="runtime"]:checked').val();
+            const env = $('input[name="environment"]:checked').val();
             const port = $('#port-input').val();
             
             const params = {};
