@@ -10,11 +10,11 @@
         }
         .left-column, .right-column {
             flex: 1;
-            padding: 20px;
+            padding: 10px;
         }
         .model-list, .running-list, #launch-dialog {
-            margin-bottom: 20px;
-            padding: 20px;
+            margin-bottom: 10px;
+            padding: 10px;
             border: 1px solid #ccc;
             border-radius: 5px;
         }
@@ -44,7 +44,7 @@
             display: none;
         }
         .zoo-list {
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
     </style>
 </head>
@@ -101,8 +101,8 @@
             </div>
 
             <div>
-                <label>Port:</label>
                 <input type="number" id="port-input" value="{{ random_port }}">
+                <span>Listen Port</span>
             </div>
 
             <button onclick="launchModel()">Launch</button>
@@ -168,7 +168,6 @@
                 
                 container.append(`
                     <div>
-                        <label>${param.param_name}:</label>
                         ${input}
                         <span>${param.param_description}</span>
                     </div>
