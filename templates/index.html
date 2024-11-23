@@ -4,10 +4,19 @@
     <title>ModelZoo</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
-        .zoo-list, .model-list, .running-list {
-            margin: 20px;
+        body {
+            display: flex;
+            font-family: Arial, sans-serif;
+        }
+        .left-column, .right-column {
+            flex: 1;
+            padding: 20px;
+        }
+        .zoo-list, .model-list, .running-list, #launch-dialog {
+            margin-bottom: 20px;
             padding: 20px;
             border: 1px solid #ccc;
+            border-radius: 5px;
         }
         .logs {
             font-family: monospace;
@@ -16,83 +25,107 @@
             max-height: 300px;
             overflow-y: auto;
         }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        button {
+            cursor: pointer;
+        }
+        #launch-dialog {
+            display: none;
+        }
     </style>
 </head>
 <body>
-    <div class="zoo-list">
-        <h2>Available Zoos</h2>
-        {% for name, zoo in zoos.items() %}
-        <div>
-            <input type="checkbox" class="zoo-toggle" data-zoo="{{ name }}" 
-                   {% if zoo_enabled[name] %}checked{% endif %}>
-            {{ name }} - {{ zoo }}
+    <div class="left-column">
+        <div class="zoo-list">
+            <h2>Available Zoos</h2>
+            {% for name, zoo in zoos.items() %}
+            <div>
+                <input type="checkbox" class="zoo-toggle" data-zoo="{{ name }}" 
+                       {% if zoo_enabled[name] %}checked{% endif %}>
+                {{ name }} - {{ zoo }}
+            </div>
+            {% endfor %}
         </div>
-        {% endfor %}
+
+        <div class="model-list">
+            <h2>Available Models</h2>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Format</th>
+                    <th>Size</th>
+                    <th>Actions</th>
+                </tr>
+                {% for model in available_models %}
+                <tr>
+                    <td>{{ model.model_name }}</td>
+                    <td>{{ model.model_format }}</td>
+                    <td>{{ human_size(model.model_size) }}</td>
+                    <td>
+                        <button onclick="showLaunchDialog('{{ model.model_id }}', '{{ model.model_name }}')">Launch</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
     </div>
 
-    <div class="model-list">
-        <h2>Available Models</h2>
-        <table>
-            <tr>
-                <th>Name</th>
-                <th>Format</th>
-                <th>Size</th>
-                <th>Actions</th>
-            </tr>
-            {% for model in available_models %}
-            <tr>
-                <td>{{ model.model_name }}</td>
-                <td>{{ model.model_format }}</td>
-                <td>{{ human_size(model.model_size) }}</td>
-                <td>
-                    <button onclick="showLaunchDialog('{{ model.model_id }}')">Launch</button>
-                </td>
-            </tr>
-            {% endfor %}
-        </table>
-    </div>
+    <div class="right-column">
+        <div id="launch-dialog">
+            <h2>Launch Model: <span id="launch-model-name"></span></h2>
+            <select id="runtime-select" onchange="loadRuntimeParams()">
+                {% for name, runtime in runtimes.items() %}
+                <option value="{{ name }}">{{ name }}</option>
+                {% endfor %}
+            </select>
+            
+            <select id="env-select">
+                {% for name, env in environments.items() %}
+                <option value="{{ name }}">{{ name }}</option>
+                {% endfor %}
+            </select>
 
-    <div class="running-list">
-        <h2>Running Models</h2>
-        {% for running in running_models %}
-        <div class="running-model">
-            <h3>{{ running.model.model_name }}</h3>
-            <p>Status: {{ "Ready" if running.ready() else "Starting" }}</p>
-            <p>Listener: {{ running.listener }}</p>
-            <button onclick="toggleLogs({{ loop.index0 }})">Show/Hide Logs</button>
-            <button onclick="stopModel({{ loop.index0 }})">Stop</button>
-            <div class="logs" id="logs-{{ loop.index0 }}" style="display: none;"></div>
-        </div>
-        {% endfor %}
-    </div>
+            <div id="runtime-params">
+            </div>
 
-    <div id="launch-dialog" style="display: none;">
-        <h3>Launch Model</h3>
-        <select id="runtime-select">
-            {% for name, runtime in runtimes.items() %}
-            <option value="{{ name }}">{{ name }}</option>
-            {% endfor %}
-        </select>
-        
-        <select id="env-select">
-            {% for name, env in environments.items() %}
-            <option value="{{ name }}">{{ name }}</option>
-            {% endfor %}
-        </select>
+            <div>
+                <label>Port:</label>
+                <input type="number" id="port-input" value="{{ random_port }}">
+            </div>
 
-        <div id="runtime-params">
+            <button onclick="launchModel()">Launch</button>
+            <button onclick="$('#launch-dialog').hide()">Cancel</button>
         </div>
 
-        <div>
-            <label>Port:</label>
-            <input type="number" id="port-input" value="{{ random_port }}">
+        <div class="running-list">
+            <h2>Running Models</h2>
+            {% for running in running_models %}
+            <div class="running-model">
+                <h3>{{ running.model.model_name }}</h3>
+                <p>Status: {{ "Ready" if running.ready() else "Starting" }}</p>
+                <p>Listener: {{ running.listener }}</p>
+                <button onclick="toggleLogs({{ loop.index0 }})">Show/Hide Logs</button>
+                <button onclick="stopModel({{ loop.index0 }})">Stop</button>
+                <div class="logs" id="logs-{{ loop.index0 }}" style="display: none;"></div>
+            </div>
+            {% endfor %}
         </div>
-
-        <button onclick="launchModel()">Launch</button>
-        <button onclick="$('#launch-dialog').hide()">Cancel</button>
     </div>
 
     <script>
+        const runtimes = {{ runtimes | tojson | safe }};
+
         // Zoo toggle handling
         $('.zoo-toggle').change(function() {
             const zoo = $(this).data('zoo');
@@ -102,16 +135,17 @@
         });
 
         // Launch dialog
-        function showLaunchDialog(modelId) {
+        function showLaunchDialog(modelId, modelName) {
             $('#launch-dialog').show();
             $('#launch-dialog').data('modelId', modelId);
+            $('#launch-model-name').text(modelName);
             
             // Load runtime parameters
-            const runtime = $('#runtime-select').val();
-            loadRuntimeParams(runtime);
+            loadRuntimeParams();
         }
 
-        function loadRuntimeParams(runtime) {
+        function loadRuntimeParams() {
+            const runtime = $('#runtime-select').val();
             const params = runtimes[runtime].runtime_params;
             const container = $('#runtime-params').empty();
             
