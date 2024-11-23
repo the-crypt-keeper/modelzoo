@@ -109,8 +109,8 @@ class ZooKeeper:
     def get_random_port(self):
         return random.randint(50000, 60000)
 
-    def run(self, host='0.0.0.0', port=5000):
-        self.app.run(host=host, port=port)
+    def run(self, host='0.0.0.0', port=5000, debug=False):
+        self.app.run(host=host, port=port, debug=debug)
 
     def render_index(self):
         return render_template('index.html',
