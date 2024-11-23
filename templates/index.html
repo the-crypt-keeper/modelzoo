@@ -64,7 +64,7 @@
             align-items: center;
             margin-bottom: 10px;
         }
-        .radio-group-container > label {
+        .xradio-group-container > label {
             margin-right: 10px;
             min-width: 100px;
         }
@@ -144,7 +144,7 @@
         <div id="launch-dialog">
             <h2>Launch Model: <span id="launch-model-name"></span></h2>
             <div class="radio-group-container">
-                <label>Environment:</label>
+                <label>ENV:</label>
                 <div id="env-select" class="radio-group">
                     {% for name, env in environments.items() %}
                     <label>
@@ -156,7 +156,7 @@
             </div>
             
             <div class="radio-group-container">
-                <label>Runtime:</label>
+                <label>RT:</label>
                 <div id="runtime-select" class="radio-group">
                     {% for name, runtime in runtimes.items() %}
                     <label>
