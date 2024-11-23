@@ -1,4 +1,3 @@
-from pathlib import Path
 from dataclasses import dataclass
 from typing import Any, List, Dict
 import subprocess
@@ -87,6 +86,7 @@ class RunningModel:
         env.update(self.environment.vars)
 
         # Start process
+        print(env)
         self.process = subprocess.Popen(
             self.command,
             env=env,
