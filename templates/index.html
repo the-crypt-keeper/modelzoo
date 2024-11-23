@@ -59,16 +59,23 @@
         .zoo-list {
             margin-bottom: 10px;
         }
+        .radio-group-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .radio-group-container > label {
+            margin-right: 10px;
+            min-width: 100px;
+        }
         .radio-group {
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
-            margin-bottom: 10px;
         }
         .radio-group label {
             display: flex;
             align-items: center;
-            margin-right: 10px;
         }
         h2 {
             margin: 5px;
@@ -136,7 +143,7 @@
     <div class="right-column">
         <div id="launch-dialog">
             <h2>Launch Model: <span id="launch-model-name"></span></h2>
-            <div>
+            <div class="radio-group-container">
                 <label>Environment:</label>
                 <div id="env-select" class="radio-group">
                     {% for name, env in environments.items() %}
@@ -148,7 +155,7 @@
                 </div>
             </div>
             
-            <div>
+            <div class="radio-group-container">
                 <label>Runtime:</label>
                 <div id="runtime-select" class="radio-group">
                     {% for name, runtime in runtimes.items() %}
