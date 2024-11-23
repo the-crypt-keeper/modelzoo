@@ -86,7 +86,6 @@ class RunningModel:
         env.update({k: str(v) for k, v in self.environment.vars.items()})
 
         # Start process
-        print(env)
         self.process = subprocess.Popen(
             self.command,
             env=env,
