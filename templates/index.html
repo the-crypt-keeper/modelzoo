@@ -12,7 +12,7 @@
             flex: 1;
             padding: 20px;
         }
-        .zoo-list, .model-list, .running-list, #launch-dialog {
+        .model-list, .running-list, #launch-dialog {
             margin-bottom: 20px;
             padding: 20px;
             border: 1px solid #ccc;
@@ -43,23 +43,24 @@
         #launch-dialog {
             display: none;
         }
+        .zoo-list {
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
     <div class="left-column">
-        <div class="zoo-list">
-            <h2>Available Zoos</h2>
+        <div class="model-list">
+            <h2>Available Models</h2>
+
             {% for name, zoo in zoos.items() %}
-            <div>
+            <div class="zoo-list">
                 <input type="checkbox" class="zoo-toggle" data-zoo="{{ name }}" 
                        {% if zoo_enabled[name] %}checked{% endif %}>
                 {{ name }} - {{ zoo }}
             </div>
             {% endfor %}
-        </div>
 
-        <div class="model-list">
-            <h2>Available Models</h2>
             <table>
                 <tr>
                     <th>Name</th>
