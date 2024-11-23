@@ -106,7 +106,7 @@ class KoboldCppRuntime(Runtime):
         Args:
             bin_path (str): Path to koboldcpp executable
         """
-        self.runtime_name = "KoboldCpp"
+        self.runtime_name = "koboldcpp"
         self.runtime_formats = ["gguf"]
         self.bin_path = bin_path
         

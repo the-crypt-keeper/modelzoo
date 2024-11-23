@@ -59,10 +59,9 @@ class ZooKeeper:
                 zoo = zoo_class(**zoo_config['params'])
                 self.zoos[zoo_config['name']] = zoo
                 self.zoo_enabled[zoo_config['name']] = True
-            except NameError:
-                print(f"Error: Zoo class '{zoo_config['class']}' not found.")
             except Exception as e:
-                print(f"Error creating zoo '{zoo_config['name']}': {str(e)}")
+                print(f"Error creating zoo '{zoo_config['name']}' of class '{zoo_config['class']}': {str(e)}")
+                raise e
 
         # Load runtimes
         for runtime_config in config.get('runtimes', []):
@@ -70,10 +69,9 @@ class ZooKeeper:
                 runtime_class = eval(runtime_config['class'])
                 runtime = runtime_class(**runtime_config['params'])
                 self.runtimes[runtime_config['name']] = runtime
-            except NameError:
-                print(f"Error: Runtime class '{runtime_config['class']}' not found.")
             except Exception as e:
-                print(f"Error creating runtime '{runtime_config['name']}': {str(e)}")
+                print(f"Error creating runtime '{runtime_config['name']}' of class '{runtime_config['class']}': {str(e)}")
+                raise e
 
         # Load environments
         for env_config in config.get('envs', []):
