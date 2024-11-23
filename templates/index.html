@@ -132,7 +132,7 @@
                     <tr class="model-row">
                         <td>{{ model.model_name }}</td>
                         <td>{{ model.model_format }}</td>
-                        <td>{{ human_size(model.model_size) }}</td>
+                        <td>${humanSize(model.model_size)}</td>
                         <td>
                             <button onclick="showLaunchDialog('{{ model.model_id }}', '{{ model.model_name }}')">Launch</button>
                         </td>
@@ -220,7 +220,7 @@
                         <tr class="model-row">
                             <td>${model.model_name}</td>
                             <td>${model.model_format}</td>
-                            <td>${humanSize(model.model_size)}</td>
+                            <td>${humanSize(model.model_size)} GB</td>
                             <td>
                                 <button onclick="showLaunchDialog('${model.model_id}', '${model.model_name}')">Launch</button>
                             </td>
@@ -248,10 +248,8 @@
         }
 
         function humanSize(bytes) {
-            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-            if (bytes === 0) return '0 Byte';
-            const i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
-            return Math.round(bytes / Math.pow(1024, i), 2) + ' ' + sizes[i];
+            const gb = bytes / (1024 * 1024 * 1024);
+            return gb.toFixed(2);
         }
 
         // Zoo toggle handling
