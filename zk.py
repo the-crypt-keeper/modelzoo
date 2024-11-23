@@ -99,7 +99,10 @@ class ZooKeeper:
         def get_logs(model_idx):
             return self.handle_get_logs(model_idx)
 
-    def get_available_models(self):
+    def handle_get_status(self, model_idx):
+        if 0 <= model_idx < len(self.running_models):
+            return jsonify({'ready': self.running_models[model_idx].ready()})
+        return jsonify({'success': False, 'error': 'Model not found'}), 404
         models = []
         for zoo_name, zoo in self.zoos.items():
             if self.zoo_enabled[zoo_name]:
