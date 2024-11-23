@@ -149,9 +149,14 @@ class KoboldCppRuntime(Runtime):
             ),
             RuntimeParameter(
                 param_name="quantkv",
-                param_description="KV cache data type quantization (0=f16, 1=q8, 2=q4)",
-                param_type="int",
-                param_default=0
+                param_description="KV cache data type quantization",
+                param_type="enum",
+                param_default="f16",
+                param_enum={
+                    "f16": 0,
+                    "q8": 1,
+                    "q4": 2
+                }
             ),
             RuntimeParameter(
                 param_name="extra_args",
@@ -201,7 +206,9 @@ class KoboldCppRuntime(Runtime):
             cmd.append("--flashattention")
 
         # Add quantkv parameter
-        cmd.extend(["--quantkv", str(param_list.get("quantkv", 0))])
+        quantkv_param = next(param for param in self.runtime_params if param.param_name == "quantkv")
+        quantkv_value = quantkv_param.param_enum[param_list.get("quantkv", "f16")]
+        cmd.extend(["--quantkv", str(quantkv_value)])
 
         # Add extra arguments if provided
         extra_args = param_list.get("extra_args", "").strip()
