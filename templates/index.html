@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ModelZoo</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .zoo-list, .model-list, .running-list {
+            margin: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+        }
+        .logs {
+            font-family: monospace;
+            background: #f0f0f0;
+            padding: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="zoo-list">
+        <h2>Available Zoos</h2>
+        {% for name, zoo in zoos.items() %}
+        <div>
+            <input type="checkbox" class="zoo-toggle" data-zoo="{{ name }}" 
+                   {% if zoo_enabled[name] %}checked{% endif %}>
+            {{ name }} - {{ zoo }}
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="model-list">
+        <h2>Available Models</h2>
+        <table>
+            <tr>
+                <th>Name</th>
+                <th>Format</th>
+                <th>Size</th>
+                <th>Actions</th>
+            </tr>
+            {% for model in available_models %}
+            <tr>
+                <td>{{ model.model_name }}</td>
+                <td>{{ model.model_format }}</td>
+                <td>{{ human_size(model.model_size) }}</td>
+                <td>
+                    <button onclick="showLaunchDialog('{{ model.model_id }}')">Launch</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <div class="running-list">
+        <h2>Running Models</h2>
+        {% for running in running_models %}
+        <div class="running-model">
+            <h3>{{ running.model.model_name }}</h3>
+            <p>Status: {{ "Ready" if running.ready() else "Starting" }}</p>
+            <p>Listener: {{ running.listener }}</p>
+            <button onclick="toggleLogs({{ loop.index0 }})">Show/Hide Logs</button>
+            <button onclick="stopModel({{ loop.index0 }})">Stop</button>
+            <div class="logs" id="logs-{{ loop.index0 }}" style="display: none;"></div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div id="launch-dialog" style="display: none;">
+        <h3>Launch Model</h3>
+        <select id="runtime-select">
+            {% for name, runtime in runtimes.items() %}
+            <option value="{{ name }}">{{ name }}</option>
+            {% endfor %}
+        </select>
+        
+        <select id="env-select">
+            {% for name, env in environments.items() %}
+            <option value="{{ name }}">{{ name }}</option>
+            {% endfor %}
+        </select>
+
+        <div id="runtime-params">
+        </div>
+
+        <div>
+            <label>Port:</label>
+            <input type="number" id="port-input" value="{{ random_port }}">
+        </div>
+
+        <button onclick="launchModel()">Launch</button>
+        <button onclick="$('#launch-dialog').hide()">Cancel</button>
+    </div>
+
+    <script>
+        // Zoo toggle handling
+        $('.zoo-toggle').change(function() {
+            const zoo = $(this).data('zoo');
+            $.post(`/api/zoo/${zoo}/toggle`, function() {
+                location.reload();
+            });
+        });
+
+        // Launch dialog
+        function showLaunchDialog(modelId) {
+            $('#launch-dialog').show();
+            $('#launch-dialog').data('modelId', modelId);
+            
+            // Load runtime parameters
+            const runtime = $('#runtime-select').val();
+            loadRuntimeParams(runtime);
+        }
+
+        function loadRuntimeParams(runtime) {
+            const params = runtimes[runtime].runtime_params;
+            const container = $('#runtime-params').empty();
+            
+            params.forEach(param => {
+                container.append(`
+                    <div>
+                        <label>${param.param_name}:</label>
+                        <input type="text" 
+                               name="${param.param_name}" 
+                               value="${param.param_default}">
+                        <span>${param.param_description}</span>
+                    </div>
+                `);
+            });
+        }
+
+        function launchModel() {
+            const modelId = $('#launch-dialog').data('modelId');
+            const runtime = $('#runtime-select').val();
+            const env = $('#env-select').val();
+            const port = $('#port-input').val();
+            
+            const params = {};
+            $('#runtime-params input').each(function() {
+                params[$(this).attr('name')] = $(this).val();
+            });
+
+            $.post('/api/model/launch', {
+                model_id: modelId,
+                runtime: runtime,
+                environment: env,
+                port: port,
+                params: JSON.stringify(params)
+            }, function() {
+                $('#launch-dialog').hide();
+                location.reload();
+            });
+        }
+
+        // Running model handling
+        function toggleLogs(idx) {
+            const logsDiv = $(`#logs-${idx}`);
+            if (logsDiv.is(':visible')) {
+                logsDiv.hide();
+                if (window.logPollers && window.logPollers[idx]) {
+                    clearInterval(window.logPollers[idx]);
+                }
+            } else {
+                logsDiv.show();
+                pollLogs(idx);
+            }
+        }
+
+        function pollLogs(idx) {
+            if (!window.logPollers) window.logPollers = {};
+            
+            function updateLogs() {
+                $.get(`/api/model/${idx}/logs`, function(logs) {
+                    $(`#logs-${idx}`).html(logs.join('<br>'));
+                });
+            }
+            
+            updateLogs();
+            window.logPollers[idx] = setInterval(updateLogs, 5000);
+        }
+
+        function stopModel(idx) {
+            $.post(`/api/model/${idx}/stop`, function() {
+                location.reload();
+            });
+        }
+    </script>
+</body>
+</html>
