@@ -128,25 +128,14 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for model in available_models[:10] %}
-                    <tr class="model-row">
-                        <td>{{ model.model_name }}</td>
-                        <td>{{ model.model_format }}</td>
-                        <td>${humanSize(model.model_size)}</td>
-                        <td>
-                            <button onclick="showLaunchDialog('{{ model.model_id }}', '{{ model.model_name }}')">Launch</button>
-                        </td>
-                    </tr>
-                    {% endfor %}
+                    <!-- Table body will be populated dynamically -->
                 </tbody>
             </table>
-            {% if available_models|length > 10 %}
             <div id="show-more-container">
                 <button id="show-more-btn" onclick="toggleShowMore()">
-                    Show More <span class="chevron">▼</span>
+                    Show Less <span class="chevron">▲</span>
                 </button>
             </div>
-            {% endif %}
         </div>
     </div>
 
@@ -206,46 +195,40 @@
         const runtimes = {{ runtimes | tojson | safe }};
         const allModels = {{ available_models | tojson | safe }};
 
+        function populateTable(models) {
+            const tbody = document.querySelector('#model-table tbody');
+            tbody.innerHTML = '';
+            models.forEach(model => {
+                tbody.innerHTML += `
+                    <tr class="model-row">
+                        <td>${model.model_name}</td>
+                        <td>${model.model_format}</td>
+                        <td>${humanSize(model.model_size)} GB</td>
+                        <td>
+                            <button onclick="showLaunchDialog('${model.model_id}', '${model.model_name}')">Launch</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
         function toggleShowMore() {
-            const table = document.getElementById('model-table');
             const btn = document.getElementById('show-more-btn');
             const chevron = btn.querySelector('.chevron');
-            const tbody = table.querySelector('tbody');
 
-            if (btn.textContent.includes('Show More')) {
-                // Show all models
-                tbody.innerHTML = '';
-                allModels.forEach(model => {
-                    tbody.innerHTML += `
-                        <tr class="model-row">
-                            <td>${model.model_name}</td>
-                            <td>${model.model_format}</td>
-                            <td>${humanSize(model.model_size)}</td>
-                            <td>
-                                <button onclick="showLaunchDialog('${model.model_id}', '${model.model_name}')">Launch</button>
-                            </td>
-                        </tr>
-                    `;
-                });
-                btn.innerHTML = 'Show Less <span class="chevron">▲</span>';
-            } else {
-                // Show only first 10 models
-                tbody.innerHTML = '';
-                allModels.slice(0, 10).forEach(model => {
-                    tbody.innerHTML += `
-                        <tr class="model-row">
-                            <td>${model.model_name}</td>
-                            <td>${model.model_format}</td>
-                            <td>${humanSize(model.model_size)}</td>
-                            <td>
-                                <button onclick="showLaunchDialog('${model.model_id}', '${model.model_name}')">Launch</button>
-                            </td>
-                        </tr>
-                    `;
-                });
+            if (btn.textContent.includes('Show Less')) {
+                populateTable(allModels.slice(0, 10));
                 btn.innerHTML = 'Show More <span class="chevron">▼</span>';
+            } else {
+                populateTable(allModels);
+                btn.innerHTML = 'Show Less <span class="chevron">▲</span>';
             }
         }
+
+        // Populate table on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            populateTable(allModels);
+        });
 
         function humanSize(bytes) {
             const gb = bytes / (1024 * 1024 * 1024);
