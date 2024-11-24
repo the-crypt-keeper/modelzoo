@@ -49,6 +49,7 @@ class ProxyServer:
                 except ClientDisconnected:
                     print("Client disconnected. Stopping stream.")
                 finally:
+                    print("Closing up shop.")
                     resp.close()
 
             return Response(stream_with_context(generate()),
