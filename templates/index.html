@@ -256,14 +256,15 @@
             tbody.innerHTML = '';
             const displayModels = limit ? models.slice(0, limit) : models;
             displayModels.forEach(model => {
+                const launchInfo = model_launch_info[`${model.zoo_name}:${model.model_name}`] || {};
                 tbody.innerHTML += `
                     <tr class="model-row">
                         <td>${model.model_name}</td>
                         <td>${model.model_format}</td>
                         <td>${humanSize(model.model_size)}</td>
                         <td>
-                            ${model.launch_count ? `Launched ${model.launch_count} times` : 'Never launched'}
-                            ${model.last_launch ? `<br>Last: ${new Date(model.last_launch).toLocaleString()}` : ''}
+                            ${launchInfo.launch_count ? `Launched ${launchInfo.launch_count} times` : 'Never launched'}
+                            ${launchInfo.last_launch ? `<br>Last: ${new Date(launchInfo.last_launch).toLocaleString()}` : ''}
                         </td>
                         <td>
                             <button onclick="showLaunchDialog('${model.model_id}', '${model.model_name}', '${model.model_format}')">Launch</button>
