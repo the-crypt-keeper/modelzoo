@@ -156,6 +156,7 @@
                         <th>Name</th>
                         <th>Format</th>
                         <th>Size (GB)</th>
+                        <th>Launch History</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -237,6 +238,7 @@
     <script>
         const runtimes = {{ runtimes | tojson | safe }};
         const allModels = {{ available_models | tojson | safe }};
+        const model_launch_info = {{ model_launch_info | tojson | safe }};
 
         // Initialize logs for non-ready models
         document.addEventListener('DOMContentLoaded', function() {
