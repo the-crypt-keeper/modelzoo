@@ -322,9 +322,12 @@
             const runtime = $('input[name="runtime"]:checked').val();
             const params = runtimes[runtime].runtime_params;
             const container = $('#runtime-params').empty();
+
+            console.log(params);
             
             params.forEach(param => {
                 let input;
+
                 if (param.param_type === 'bool') {
                     input = `<input type="checkbox" 
                                     name="${param.param_name}" 
