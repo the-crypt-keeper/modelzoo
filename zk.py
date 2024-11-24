@@ -120,7 +120,6 @@ class ZooKeeper:
     def render_index(self):
         return render_template('index.html',
             zoos=self.zoos,
-            zoo_enabled=self.zoo_enabled,
             available_models=self.get_available_models(),
             running_models=self.running_models,
             runtimes={name: runtime.__dict__ for name, runtime in self.runtimes.items()},

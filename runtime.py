@@ -233,7 +233,7 @@ class TabbyRuntime(Runtime):
             script_path (str): Path to TabbyAPI shell script
         """
         self.runtime_name = name
-        self.runtime_formats = ["gguf"]
+        self.runtime_formats = ["gptq","exl2"]
         self.script_path = script_path
         
         # Define available parameters
@@ -276,17 +276,17 @@ class TabbyRuntime(Runtime):
                 param_default=True
             ),
             RuntimeParameter(
-                param_name="extra_args",
-                param_description="Optional additional arguments to the script",
-                param_type="str",
-                param_default=""
-            ),
-            RuntimeParameter(
                 param_name="gpu_split",
                 param_description="GPU split configuration",
                 param_type="str",
                 param_default=""
-            )
+            ),
+            RuntimeParameter(
+                param_name="extra_args",
+                param_description="Optional additional arguments to the script",
+                param_type="str",
+                param_default=""
+            )            
         ]
 
     def spawn(self, 
@@ -308,7 +308,7 @@ class TabbyRuntime(Runtime):
         Raises:
             ValueError: If model format is not supported
         """
-        if model.model_format != "gguf":
+        if model.model_format not in self.runtime_formats:
             raise ValueError(f"Unsupported model format: {model.model_format}")
 
         # Build command line
@@ -329,12 +329,12 @@ class TabbyRuntime(Runtime):
 
         # Add disable auth if enabled
         if param_list.get("disable_auth", True):
-            cmd.append("--disable-auth")
+            cmd.append("--disable-auth", "True")
 
         # Add GPU split if provided
         gpu_split = param_list.get("gpu_split", "").strip()
         if gpu_split:
-            cmd.extend(["--gpu-split", gpu_split])
+            cmd.extend(["--gpu-split", gpu_split,"--gpu-split-auto", "False"])
 
         # Add extra arguments if provided
         extra_args = param_list.get("extra_args", "").strip()
