@@ -39,7 +39,7 @@ class ProxyServer:
             headers = {k: v for k, v in request.headers.items() if k.lower() != 'host'}
 
             resp = requests.post(target_url, json=data, headers=headers, stream=True)
-            content_type = resp.headers.get('content-type', 'application/json')
+            content_type = resp.headers.get('Content-Type', 'application/json')
 
             @stream_with_context
             def generate():
@@ -50,6 +50,7 @@ class ProxyServer:
                 except GeneratorExit:
                     print("Client disconnected. Stopping stream.")
                 finally:
+                    print("Closing proxy connection.")
                     resp.close()
 
             return Response(generate(),
