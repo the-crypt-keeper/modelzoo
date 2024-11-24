@@ -61,14 +61,5 @@ class ProxyServer:
         except Exception as e:
             return web.json_response({"error": str(e)}, status=500)
 
-    async def handle_asgi(self, scope, receive, send):
-        if scope['type'] == 'http':
-            request = web.Request(scope, receive)
-            response = await self.app._handle(request)
-            await response.prepare(scope)
-            await response.write_eof()
-        else:
-            raise NotImplementedError(f"Unsupported scope type: {scope['type']}")
-
     def get_asgi_app(self):
-        return self.handle_asgi
+        return self.app
