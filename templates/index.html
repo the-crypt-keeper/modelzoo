@@ -310,7 +310,7 @@
                 $('.launch-buttons button').prop('disabled', false);
                 compatibleRuntimes.forEach(([name, runtime], index) => {
                     runtimeSelect.append(`
-                        <input type="radio" name="runtime" id="runtime-${name}" value="${name}" ${index === 0 ? 'checked' : ''}>
+                        <input type="radio" name="runtime" id="runtime-${name}" value="${name}" ${index === 0 ? 'checked' : ''} onchange="loadRuntimeParams()">
                         <label for="runtime-${name}">${name}</label>
                     `);
                 });
@@ -319,39 +319,48 @@
         }
 
         function loadRuntimeParams() {
-            const runtime = $('input[name="runtime"]:checked').val();
-            const params = runtimes[runtime].runtime_params;
+            const selectedRuntime = $('input[name="runtime"]:checked').val();
             const container = $('#runtime-params').empty();
 
-            console.log(params);
+            if (!selectedRuntime) {
+                console.log('No runtime selected');
+                return;
+            }
+
+            const params = runtimes[selectedRuntime].runtime_params;
+            console.log('Selected runtime:', selectedRuntime);
+            console.log('Params:', params);
             
             params.forEach(param => {
                 let input;
 
                 if (param.param_type === 'bool') {
                     input = `<input type="checkbox" 
+                                    id="${param.param_name}"
                                     name="${param.param_name}" 
                                     ${param.param_default ? 'checked' : ''}>`;
                 } else if (param.param_type === 'int') {
                     input = `<input type="number" 
+                                    id="${param.param_name}"
                                     name="${param.param_name}" 
                                     value="${param.param_default}">`;
                 } else if (param.param_type === 'enum') {
-                    input = `<select name="${param.param_name}">
+                    input = `<select id="${param.param_name}" name="${param.param_name}">
                         ${Object.entries(param.param_enum).map(([key, value]) => 
                             `<option value="${key}" ${key === param.param_default ? 'selected' : ''}>${key} (${value})</option>`
                         ).join('')}
                     </select>`;
                 } else {
                     input = `<input type="text" 
+                                    id="${param.param_name}"
                                     name="${param.param_name}" 
                                     value="${param.param_default}">`;
                 }
                 
                 container.append(`
                     <div>
+                        <label for="${param.param_name}">${param.param_description}</label>
                         ${input}
-                        <span>${param.param_description}</span>
                     </div>
                 `);
             });
