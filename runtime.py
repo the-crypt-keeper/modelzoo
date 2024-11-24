@@ -329,7 +329,7 @@ class TabbyRuntime(Runtime):
 
         # Add disable auth if enabled
         if param_list.get("disable_auth", True):
-            cmd.append("--disable-auth", "True")
+            cmd.extend(["--disable-auth", "True"])
 
         # Add GPU split if provided
         gpu_split = param_list.get("gpu_split", "").strip()
