@@ -203,6 +203,7 @@
                     <button onclick="$('#launch-dialog').hide()">Cancel</button>
                 </div>
             </div>
+            <div id="launch-error" style="color: red; margin-top: 10px; display: none;"></div>
         </div>
 
         <div class="running-list">
@@ -345,15 +346,26 @@
                 }
             });
 
-            $.post('/api/model/launch', {
-                model_id: modelId,
-                runtime: runtime,
-                environment: env,
-                port: parseInt(port, 10),
-                params: JSON.stringify(params)
-            }, function() {
-                $('#launch-dialog').hide();
-                location.reload();
+            $.ajax({
+                url: '/api/model/launch',
+                method: 'POST',
+                data: {
+                    model_id: modelId,
+                    runtime: runtime,
+                    environment: env,
+                    port: parseInt(port, 10),
+                    params: JSON.stringify(params)
+                },
+                success: function() {
+                    $('#launch-dialog').hide();
+                    location.reload();
+                },
+                error: function(xhr, status, error) {
+                    const errorMessage = xhr.responseJSON && xhr.responseJSON.error 
+                        ? `Error ${xhr.status}: ${xhr.responseJSON.error}`
+                        : `Error ${xhr.status}: ${error}`;
+                    $('#launch-error').text(errorMessage).show();
+                }
             });
         }
 
