@@ -3,6 +3,7 @@ import yaml
 from flask import Flask, jsonify, request, render_template
 import random
 import json
+import traceback
 
 from base import *
 from zoo import *
@@ -81,27 +82,40 @@ class ZooKeeper:
     def setup_routes(self):
         @self.app.route('/')
         def index():
-            return self.render_index()
+            return self.handle_exception(self.render_index)
 
         @self.app.route('/api/zoo/<name>/toggle', methods=['POST'])
         def toggle_zoo(name):
-            return self.handle_toggle_zoo(name)
+            return self.handle_exception(self.handle_toggle_zoo, name)
 
         @self.app.route('/api/model/launch', methods=['POST'])
         def launch_model():
-            return self.handle_launch_model()
+            return self.handle_exception(self.handle_launch_model)
 
         @self.app.route('/api/model/<int:model_idx>/stop', methods=['POST'])
         def stop_model(model_idx):
-            return self.handle_stop_model(model_idx)
+            return self.handle_exception(self.handle_stop_model, model_idx)
 
         @self.app.route('/api/model/<int:model_idx>/logs')
         def get_logs(model_idx):
-            return self.handle_get_logs(model_idx)
+            return self.handle_exception(self.handle_get_logs, model_idx)
 
         @self.app.route('/api/model/<int:model_idx>/status')
         def get_status(model_idx):
-            return self.handle_get_status(model_idx)
+            return self.handle_exception(self.handle_get_status, model_idx)
+
+    def handle_exception(self, func, *args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            error_message = str(e)
+            stack_trace = traceback.format_exc()
+            print(f"Error: {error_message}\n{stack_trace}")
+            return jsonify({
+                'success': False,
+                'error': error_message,
+                'stack_trace': stack_trace
+            }), 500
 
     def handle_get_status(self, model_idx):
         if 0 <= model_idx < len(self.running_models):
