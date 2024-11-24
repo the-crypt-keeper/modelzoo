@@ -92,8 +92,19 @@ class RunningModel:
         self._log_thread = None
         self._running = False
         
+        # Seed the logs with command and environment
+        self._seed_logs()
+        
         # Start the process
         self._start_process()
+
+    def _seed_logs(self):
+        """Seed the logs with command and environment information."""
+        self.log_buffer.append("Command: " + " ".join(self.command))
+        self.log_buffer.append("Environment:")
+        for key, value in self.environment.vars.items():
+            self.log_buffer.append(f"  {key}={value}")
+        self.log_buffer.append("---")  # Separator
 
     def _start_process(self):
         """Start the underlying process and log collection."""
