@@ -179,8 +179,8 @@
                 <label>ENV:</label>
                 <div id="env-select" class="radio-group">
                     {% for name, env in environments.items() %}
-                    <input type="radio" name="environment" id="env-{{ name }}" value="{{ name }}" {% if loop.first %}checked{% endif %}>
-                    <label for="env-{{ name }}">{{ name }}</label>
+                    <input type="radio" name="environment" id="env-{{ loop.index }}" data-env-name="{{ name }}" value="{{ name }}" {% if loop.first %}checked{% endif %}>
+                    <label for="env-{{ loop.index }}">{{ name }}</label>
                     {% endfor %}
                 </div>
             </div>
@@ -338,7 +338,7 @@
                 
                 // Set last used environment
                 if (lastLaunchInfo.last_environment) {
-                    $(`#env-${lastLaunchInfo.last_environment}`).prop('checked', true);
+                    $(`#env-select input[data-env-name="${lastLaunchInfo.last_environment}"]`).prop('checked', true);
                 } else {
                     // Set the first environment as default if no last environment
                     $('#env-select input:first').prop('checked', true);
