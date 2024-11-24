@@ -101,7 +101,7 @@ class ZooKeeper:
 
     def handle_get_status(self, model_idx):
         if 0 <= model_idx < len(self.running_models):
-            return jsonify({'ready': self.running_models[model_idx].ready()})
+            return jsonify(self.running_models[model_idx].status())
         return jsonify({'success': False, 'error': 'Model not found'}), 404
 
     def get_available_models(self):
