@@ -14,7 +14,7 @@ keeper = ZooKeeper(args.config)
 keeper_asgi = keeper.get_asgi_app()
 
 proxy = ProxyServer(keeper)
-proxy_asgi = proxy.app
+proxy_asgi = proxy.get_asgi_app()
 
 async def combined_app(scope, receive, send):
     if scope['path'].startswith('/v1/'):
