@@ -217,7 +217,7 @@
         <div class="running-list">
             <h2>Running Models</h2>
             {% for running in running_models %}
-            <div class="running-model">
+            <div class="running-model" data-index="{{ loop.index0 }}">
                 <h3>
                     <span class="status-indicator {{ 'status-ready' if running.status()['ready'] else 'status-starting' if running.status()['running'] else 'status-stopped' }}"></span>
                     {{ running.model.model_name }}
@@ -228,7 +228,7 @@
                 <p>{{ running.listener }} via <i>{{ running.runtime.runtime_name }}</i> on <i>{{ running.environment.name }}</i></p>
                 <button onclick="toggleLogs({{ loop.index0 }})">Show/Hide Logs</button>
                 <button onclick="stopModel({{ loop.index0 }})">Stop</button>
-                <div class="logs" id="logs-{{ loop.index0 }}" style="display: none;"></div>
+                <div class="logs" id="logs-{{ loop.index0 }}" style="display: {{ 'block' if not running.status()['ready'] else 'none' }};"></div>
             </div>
             {% endfor %}
         </div>
@@ -237,6 +237,17 @@
     <script>
         const runtimes = {{ runtimes | tojson | safe }};
         const allModels = {{ available_models | tojson | safe }};
+
+        // Initialize logs for non-ready models
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.running-model').forEach(model => {
+                const index = model.dataset.index;
+                const statusIndicator = model.querySelector('.status-indicator');
+                if (!statusIndicator.classList.contains('status-ready')) {
+                    pollLogs(index);
+                }
+            });
+        });
 
         function populateTable(models, limit = null) {
             const tbody = document.querySelector('#model-table tbody');
