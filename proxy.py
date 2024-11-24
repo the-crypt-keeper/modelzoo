@@ -62,4 +62,4 @@ class ProxyServer:
             return web.json_response({"error": str(e)}, status=500)
 
     def get_asgi_app(self):
-        return web._run_app(self.app, handle_signals=False)
+        return self.app
