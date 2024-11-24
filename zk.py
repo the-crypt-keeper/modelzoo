@@ -37,7 +37,7 @@ class ZooKeeper:
         for zoo_config in config.get('zoos', []):
             try:
                 zoo_class = eval(zoo_config['class'])
-                zoo = zoo_class(**zoo_config['params'])
+                zoo = zoo_class(name=zoo_config['name'], **zoo_config['params'])
                 self.zoos[zoo_config['name']] = zoo
                 self.zoo_enabled[zoo_config['name']] = True
             except Exception as e:
@@ -187,8 +187,8 @@ class ZooKeeper:
         for model in self.running_models:
             if model.ready():
                 ready_models.append({
-                    'model_name': model.model.name,
-                    'model_id': model.model.model_id,
+                    'model_name': model.model_name,
+                    'model_id': model.model_id,
                     'listener': model.listener.__dict__
                 })
         return jsonify({'running_models': ready_models})
