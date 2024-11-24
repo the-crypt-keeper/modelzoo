@@ -9,30 +9,11 @@ from base import *
 from zoo import *
 from runtime import *
 
-# Import all zoo and runtime classes
-from zoo import FolderZoo
-from runtime import LlamaRuntime, KoboldCppRuntime
-
-def human_size(size: int) -> str:
-    """Convert size in bytes to human readable string.
-    
-    Args:
-        size (int): Size in bytes
-        
-    Returns:
-        str: Human readable size (e.g., "1.23 GB")
-    """
-    for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
-        if size < 1024.0:
-            return f"{size:.2f} {unit}"
-        size /= 1024.0
-    return f"{size:.2f} PB"
-
 class ZooKeeper:
     def __init__(self, config_path: str):
         self.app = Flask(__name__)
-        self.zoos: Dict[str, FolderZoo] = {}
-        self.runtimes: Dict[str, LlamaRuntime] = {}
+        self.zoos: Dict[str, Zoo] = {}
+        self.runtimes: Dict[str, Runtime] = {}
         self.environments: Dict[str, Environment] = {}
         self.running_models: List[RunningModel] = []
         self.zoo_enabled: Dict[str, bool] = {}
@@ -45,8 +26,7 @@ class ZooKeeper:
         
         # Setup Jinja
         self.app.jinja_env.globals.update(
-            enumerate=enumerate,
-            human_size=human_size
+            enumerate=enumerate
         )        
 
     def load_config(self, config_path: str):
