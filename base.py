@@ -53,6 +53,7 @@ class Listener:
 @dataclass
 class Model:
     """Data class representing a machine learning model."""
+    zoo_name: str
     model_id: str
     model_format: str
     model_name: str = None

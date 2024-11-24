@@ -6,7 +6,6 @@ import json
 import traceback
 from datetime import datetime
 from dataclasses import dataclass, asdict
-from operator import attrgetter
 
 from base import *
 from zoo import *
@@ -61,8 +60,8 @@ class ModelHistory:
 
     def get_sorted_models(self, models: List[Model]) -> List[Model]:
         def get_launch_info(model):
-            key = f"{model.zoo_name}:{model.name}"
-            return self.model_info.get(key, ModelLaunchInfo(model.zoo_name, model.name))
+            key = f"{model.zoo_name}:{model.model_name}"
+            return self.model_info.get(key, ModelLaunchInfo(model.zoo_name, model.model_name))
 
         return sorted(models, key=lambda m: (
             get_launch_info(m).launch_count,
@@ -185,9 +184,10 @@ class ZooKeeper:
     def render_index(self):
         available_models = self.get_available_models()
         model_launch_info = {
-            f"{model.zoo_name}:{model.name}": self.model_history.get_last_launch_info(model.zoo_name, model.name)
+            f"{model.zoo_name}:{model.model_name}": self.model_history.get_last_launch_info(model.zoo_name, model.model_name)
             for model in available_models
         }
+
         return render_template('index.html',
             zoos=self.zoos,
             available_models=available_models,
@@ -237,7 +237,7 @@ class ZooKeeper:
         self.running_models.append(running_model)
 
         # Update launch history
-        self.model_history.update_model_launch(model.zoo_name, model.name, runtime_name, env_name, params)
+        self.model_history.update_model_launch(model.zoo_name, model.model_name, runtime_name, env_name, params)
 
         return jsonify({'success': True})
 

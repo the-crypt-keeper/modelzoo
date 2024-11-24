@@ -72,6 +72,7 @@ class FolderZoo(Zoo):
                 
                 # Create model instance
                 model = Model(
+                    zoo_name=self.name,                    
                     model_id=model_id,
                     model_format="gguf",
                     model_name=base_name,
@@ -117,6 +118,7 @@ class FolderZoo(Zoo):
                         total_size = sum(f.stat().st_size for f in dir_path.rglob('*') if f.is_file())
                         
                         model = Model(
+                            zoo_name=self.name,
                             model_id=str(dir_path.absolute()),
                             model_format=model_format,
                             model_name=dir_path.name,
