@@ -5,6 +5,7 @@ import threading
 from collections import deque
 import requests
 import os
+import signal
 
 class Runtime:
     pass
@@ -92,6 +93,7 @@ class RunningModel:
         self.log_buffer = deque(maxlen=100)  # Keep last 100 lines
         self._log_thread = None
         self._running = False
+        self._pgid = None
         
         # Seed the logs with command and environment
         self._seed_logs()
@@ -121,8 +123,12 @@ class RunningModel:
             stderr=subprocess.STDOUT,
             text=True,
             bufsize=1,
-            universal_newlines=True
+            universal_newlines=True,
+            preexec_fn=os.setsid  # Create a new process group
         )
+
+        # Store the process group ID
+        self._pgid = os.getpgid(self.process.pid)
 
         # Start log collection
         self._running = True
@@ -168,16 +174,19 @@ class RunningModel:
         return list(self.log_buffer)
 
     def stop(self) -> None:
-        """Stop the running model server."""
+        """Stop the running model server and all its child processes."""
         if self.process:
             self._running = False
-            self.process.terminate()
             try:
+                os.killpg(self._pgid, signal.SIGTERM)
                 self.process.wait(timeout=5)  # Wait up to 5 seconds
             except subprocess.TimeoutExpired:
                 print('Attempting to force kill..')
-                self.process.kill()  # Force kill if not terminated
+                os.killpg(self._pgid, signal.SIGKILL)  # Force kill if not terminated
+            except ProcessLookupError:
+                print('Process group already terminated')
             self.process = None
+            self._pgid = None
 
         if self._log_thread:
             self._log_thread.join(timeout=1)
