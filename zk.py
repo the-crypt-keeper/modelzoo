@@ -6,10 +6,12 @@ import json
 import traceback
 from datetime import datetime
 from dataclasses import dataclass, asdict
+import threading
 
 from base import *
 from zoo import *
 from runtime import *
+from proxy import run_proxy
 
 @dataclass
 class ModelLaunchInfo:
@@ -179,6 +181,8 @@ class ZooKeeper:
         return random.randint(50000, 60000)
 
     def run(self, host='0.0.0.0', port=5000, debug=False):
+        proxy_thread = threading.Thread(target=run_proxy, args=(self, '0.0.0.0', 8000), daemon=True)
+        proxy_thread.start()
         self.app.run(host=host, port=port, debug=debug)
 
     def render_index(self):
@@ -263,3 +267,6 @@ class ZooKeeper:
                     'listener': model.listener.__dict__
                 })
         return jsonify({'running_models': ready_models})
+
+    def get_running_models(self):
+        return [model for model in self.running_models if model.ready()]
