@@ -11,7 +11,7 @@ class LlamaRuntime(Runtime):
             bin_path (str): Path to llama-server executable
         """
         self.runtime_name = name
-        self.runtime_formats = ["gguf"]
+        self.runtime_formats = ["exl2", "gptq"]
         self.bin_path = bin_path
         
         # Define available parameters
@@ -74,7 +74,7 @@ class LlamaRuntime(Runtime):
         Raises:
             ValueError: If model format is not supported
         """
-        if model.model_format != "gguf":
+        if model.model_format not in self.runtime_formats:
             raise ValueError(f"Unsupported model format: {model.model_format}")
 
         # Build command line
