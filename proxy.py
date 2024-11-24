@@ -1,5 +1,6 @@
 from flask import request, Response, jsonify, stream_with_context
 import requests
+from werkzeug.exceptions import ClientDisconnected
 
 class ProxyServer:
      def __init__(self, zookeeper):
@@ -43,12 +44,10 @@ class ProxyServer:
             def generate():
                 try:
                     for chunk in resp.iter_content(chunk_size=4096):
-                        # Check if client disconnected
-                        if not request.environ.get('werkzeug.socket'):
-                            print("Client disconnected. Stopping stream.")
-                            break
                         if chunk:  # filter out keep-alive new chunks
                             yield chunk
+                except ClientDisconnected:
+                    print("Client disconnected. Stopping stream.")
                 finally:
                     resp.close()
 
