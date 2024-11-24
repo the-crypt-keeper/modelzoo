@@ -363,29 +363,29 @@
             
             params.forEach(param => {
                 let input;
-                const lastValue = lastParams && lastParams[param.param_name];
+                const value = lastParams && lastParams[param.param_name] !== undefined ? lastParams[param.param_name] : param.param_default;
 
                 if (param.param_type === 'bool') {
                     input = `<input type="checkbox" 
                                     id="${param.param_name}"
                                     name="${param.param_name}" 
-                                    ${lastValue !== undefined ? (lastValue ? 'checked' : '') : (param.param_default ? 'checked' : '')}>`;
+                                    ${value ? 'checked' : ''}>`;
                 } else if (param.param_type === 'int') {
                     input = `<input type="number" 
                                     id="${param.param_name}"
                                     name="${param.param_name}" 
-                                    value="${lastValue !== undefined ? lastValue : param.param_default}">`;
+                                    value="${value}">`;
                 } else if (param.param_type === 'enum') {
                     input = `<select id="${param.param_name}" name="${param.param_name}">
-                        ${Object.entries(param.param_enum).map(([key, value]) => 
-                            `<option value="${key}" ${key === (lastValue !== undefined ? lastValue : param.param_default) ? 'selected' : ''}>${key} (${value})</option>`
+                        ${Object.entries(param.param_enum).map(([key, enumValue]) => 
+                            `<option value="${key}" ${key === value ? 'selected' : ''}>${key} (${enumValue})</option>`
                         ).join('')}
                     </select>`;
                 } else {
                     input = `<input type="text" 
                                     id="${param.param_name}"
                                     name="${param.param_name}" 
-                                    value="${lastValue !== undefined ? lastValue : param.param_default}">`;
+                                    value="${value}">`;
                 }
                 
                 container.append(`
