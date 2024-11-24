@@ -11,7 +11,7 @@ class LlamaRuntime(Runtime):
             bin_path (str): Path to llama-server executable
         """
         self.runtime_name = name
-        self.runtime_formats = ["exl2", "gptq"]
+        self.runtime_formats = ["gguf"]
         self.bin_path = bin_path
         
         # Define available parameters
