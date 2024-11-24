@@ -262,6 +262,10 @@
                         <td>
                             <button onclick="showLaunchDialog('${model.model_id}', '${model.model_name}', '${model.model_format}')">Launch</button>
                         </td>
+                        <td>
+                            ${model.launch_count ? `Launched ${model.launch_count} times` : 'Never launched'}
+                            ${model.last_launch ? `<br>Last: ${new Date(model.last_launch).toLocaleString()}` : ''}
+                        </td>
                     </tr>
                 `;
             });
@@ -305,6 +309,8 @@
             $('#launch-dialog').data('modelId', modelId);
             $('#launch-model-name').text(modelName);
             
+            const lastLaunchInfo = allModels.find(m => m.model_id === modelId);
+            
             // Filter runtimes based on model format
             const compatibleRuntimes = Object.entries(runtimes).filter(([_, runtime]) => 
                 runtime.runtime_formats.includes(modelFormat)
@@ -320,16 +326,23 @@
                 $('#launch-error').hide();
                 $('.launch-buttons button').prop('disabled', false);
                 compatibleRuntimes.forEach(([name, runtime], index) => {
+                    const isChecked = lastLaunchInfo.last_runtime === name || (index === 0 && !lastLaunchInfo.last_runtime);
                     runtimeSelect.append(`
-                        <input type="radio" name="runtime" id="runtime-${name}" value="${name}" ${index === 0 ? 'checked' : ''} onchange="loadRuntimeParams()">
+                        <input type="radio" name="runtime" id="runtime-${name}" value="${name}" ${isChecked ? 'checked' : ''} onchange="loadRuntimeParams()">
                         <label for="runtime-${name}">${name}</label>
                     `);
                 });
-                loadRuntimeParams();
+                
+                // Set last used environment
+                if (lastLaunchInfo.last_environment) {
+                    $(`#env-${lastLaunchInfo.last_environment}`).prop('checked', true);
+                }
+                
+                loadRuntimeParams(lastLaunchInfo.last_params);
             }
         }
 
-        function loadRuntimeParams() {
+        function loadRuntimeParams(lastParams) {
             const selectedRuntime = $('input[name="runtime"]:checked').val();
             const container = $('#runtime-params').empty();
 
@@ -344,28 +357,29 @@
             
             params.forEach(param => {
                 let input;
+                const lastValue = lastParams && lastParams[param.param_name];
 
                 if (param.param_type === 'bool') {
                     input = `<input type="checkbox" 
                                     id="${param.param_name}"
                                     name="${param.param_name}" 
-                                    ${param.param_default ? 'checked' : ''}>`;
+                                    ${lastValue !== undefined ? (lastValue ? 'checked' : '') : (param.param_default ? 'checked' : '')}>`;
                 } else if (param.param_type === 'int') {
                     input = `<input type="number" 
                                     id="${param.param_name}"
                                     name="${param.param_name}" 
-                                    value="${param.param_default}">`;
+                                    value="${lastValue !== undefined ? lastValue : param.param_default}">`;
                 } else if (param.param_type === 'enum') {
                     input = `<select id="${param.param_name}" name="${param.param_name}">
                         ${Object.entries(param.param_enum).map(([key, value]) => 
-                            `<option value="${key}" ${key === param.param_default ? 'selected' : ''}>${key} (${value})</option>`
+                            `<option value="${key}" ${key === (lastValue !== undefined ? lastValue : param.param_default) ? 'selected' : ''}>${key} (${value})</option>`
                         ).join('')}
                     </select>`;
                 } else {
                     input = `<input type="text" 
                                     id="${param.param_name}"
                                     name="${param.param_name}" 
-                                    value="${param.param_default}">`;
+                                    value="${lastValue !== undefined ? lastValue : param.param_default}">`;
                 }
                 
                 container.append(`
