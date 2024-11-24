@@ -125,7 +125,17 @@ class RunningModel:
             if line:
                 self.log_buffer.append(line.rstrip())
 
-    def ready(self) -> bool:
+    def status(self) -> dict:
+        """Check the status of the model.
+        
+        Returns:
+            dict: A dictionary containing 'running' and 'ready' status
+        """
+        running = self.process is not None and self.process.poll() is None
+        ready = running and self._is_ready()
+        return {"running": running, "ready": ready}
+
+    def _is_ready(self) -> bool:
         """Check if the model server is ready to accept requests.
         
         Returns:
