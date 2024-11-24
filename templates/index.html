@@ -312,7 +312,7 @@
             $('#launch-dialog').data('modelId', modelId);
             $('#launch-model-name').text(modelName);
             
-            const lastLaunchInfo = allModels.find(m => m.model_id === modelId);
+            const lastLaunchInfo = model_launch_info[`${zooName}:${modelName}`] || {};
             
             // Filter runtimes based on model format
             const compatibleRuntimes = Object.entries(runtimes).filter(([_, runtime]) => 
@@ -339,6 +339,9 @@
                 // Set last used environment
                 if (lastLaunchInfo.last_environment) {
                     $(`#env-${lastLaunchInfo.last_environment}`).prop('checked', true);
+                } else {
+                    // Set the first environment as default if no last environment
+                    $('#env-select input:first').prop('checked', true);
                 }
                 
                 loadRuntimeParams(lastLaunchInfo.last_params);
