@@ -16,7 +16,6 @@ class ZooKeeper:
         self.runtimes: Dict[str, Runtime] = {}
         self.environments: Dict[str, Environment] = {}
         self.running_models: List[RunningModel] = []
-        self.zoo_enabled: Dict[str, bool] = {}
         
         # Load configuration
         self.load_config(config_path)
@@ -39,7 +38,6 @@ class ZooKeeper:
                 zoo_class = eval(zoo_config['class'])
                 zoo = zoo_class(name=zoo_config['name'], **zoo_config['params'])
                 self.zoos[zoo_config['name']] = zoo
-                self.zoo_enabled[zoo_config['name']] = True
             except Exception as e:
                 print(f"Error creating zoo '{zoo_config['name']}' of class '{zoo_config['class']}': {str(e)}")
                 raise e
@@ -108,8 +106,8 @@ class ZooKeeper:
 
     def get_available_models(self):
         models = []
-        for zoo_name, zoo in self.zoos.items():
-            if self.zoo_enabled[zoo_name]:
+        for zoo in self.zoos.values():
+            if zoo.enabled:
                 models.extend(zoo.catalog())
         return models
 
@@ -131,8 +129,8 @@ class ZooKeeper:
         )
 
     def handle_toggle_zoo(self, name):
-        if name in self.zoo_enabled:
-            self.zoo_enabled[name] = not self.zoo_enabled[name]
+        if name in self.zoos:
+            self.zoos[name].toggle()
             return jsonify({'success': True})
         return jsonify({'success': False, 'error': 'Zoo not found'}), 404
 

@@ -7,14 +7,15 @@ import shutil
 class FolderZoo(Zoo):
     """Zoo implementation that discovers GGUF models in a filesystem folder."""
 
-    def __init__(self, name:str, path: str):
+    def __init__(self, name: str, path: str):
         """Initialize a FolderZoo with a specific path.
         
         Args:
+            name (str): Name of the zoo
             path (str): Path to folder containing models
         """
+        super().__init__(name)
         self.path = Path(path)
-        self.name = name
         if not self.path.exists():
             raise ValueError(f"Path does not exist: {path}")
         if not self.path.is_dir():

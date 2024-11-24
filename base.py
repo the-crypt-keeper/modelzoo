@@ -10,7 +10,12 @@ class Runtime:
     pass
         
 class Zoo:
-    pass
+    def __init__(self, name: str):
+        self.name = name
+        self.enabled = True
+
+    def toggle(self):
+        self.enabled = not self.enabled
 
 @dataclass
 class RuntimeParameter:

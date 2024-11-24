@@ -137,7 +137,7 @@
             {% for name, zoo in zoos.items() %}
             <div class="zoo-list">
                 <input type="checkbox" class="zoo-toggle" data-zoo="{{ name }}" 
-                       {% if zoo_enabled[name] %}checked{% endif %}>
+                       {% if zoo.enabled %}checked{% endif %}>
                 {{ name }} - {{ zoo }}
             </div>
             {% endfor %}
