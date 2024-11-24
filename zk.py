@@ -122,7 +122,7 @@ class ZooKeeper:
             zoos=self.zoos,
             available_models=self.get_available_models(),
             running_models=self.running_models,
-            runtimes={name: runtime.__dict__ for name, runtime in self.runtimes.items()},
+            runtimes={name: {**runtime.__dict__, 'runtime_formats': runtime.runtime_formats} for name, runtime in self.runtimes.items()},
             environments=self.environments,
             random_port=self.get_random_port()
         )

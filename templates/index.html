@@ -238,7 +238,7 @@
                         <td>${model.model_format}</td>
                         <td>${humanSize(model.model_size)}</td>
                         <td>
-                            <button onclick="showLaunchDialog('${model.model_id}', '${model.model_name}')">Launch</button>
+                            <button onclick="showLaunchDialog('${model.model_id}', '${model.model_name}', '${model.model_format}')">Launch</button>
                         </td>
                     </tr>
                 `;
@@ -278,13 +278,33 @@
         });
 
         // Launch dialog
-        function showLaunchDialog(modelId, modelName) {
+        function showLaunchDialog(modelId, modelName, modelFormat) {
             $('#launch-dialog').show();
             $('#launch-dialog').data('modelId', modelId);
             $('#launch-model-name').text(modelName);
             
-            // Load runtime parameters
-            loadRuntimeParams();
+            // Filter runtimes based on model format
+            const compatibleRuntimes = Object.entries(runtimes).filter(([_, runtime]) => 
+                runtime.runtime_formats.includes(modelFormat)
+            );
+
+            // Update runtime options
+            const runtimeSelect = $('#runtime-select').empty();
+            if (compatibleRuntimes.length === 0) {
+                $('#launch-error').text('No compatible runtimes available for this model format.').show();
+                $('#runtime-params').empty();
+                $('.launch-buttons button').prop('disabled', true);
+            } else {
+                $('#launch-error').hide();
+                $('.launch-buttons button').prop('disabled', false);
+                compatibleRuntimes.forEach(([name, runtime], index) => {
+                    runtimeSelect.append(`
+                        <input type="radio" name="runtime" id="runtime-${name}" value="${name}" ${index === 0 ? 'checked' : ''}>
+                        <label for="runtime-${name}">${name}</label>
+                    `);
+                });
+                loadRuntimeParams();
+            }
         }
 
         function loadRuntimeParams() {
