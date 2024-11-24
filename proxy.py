@@ -3,6 +3,7 @@ import aiohttp
 from aiohttp import web
 import json
 from typing import List, Dict
+from asgiref.wsgi import WsgiToAsgi
 
 class ProxyServer:
     def __init__(self, zookeeper):
@@ -64,15 +65,5 @@ class ProxyServer:
         except Exception as e:
             return web.json_response({"error": str(e)}, status=500)
 
-    async def start(self, host: str, port: int):
-        runner = web.AppRunner(self.app)
-        await runner.setup()
-        site = web.TCPSite(runner, host, port)
-        await site.start()
-        print(f"Proxy server started on http://{host}:{port}")
-
-def run_proxy(zookeeper, host: str, port: int):
-    proxy = ProxyServer(zookeeper)
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(proxy.start(host, port))
-    loop.run_forever()
+    def get_asgi_app(self):
+        return self.app
