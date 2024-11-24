@@ -84,6 +84,10 @@ class ZooKeeper:
         def get_status(model_idx):
             return self.handle_exception(self.handle_get_status, model_idx)
 
+        @self.app.route('/api/running_models')
+        def get_running_models():
+            return self.handle_exception(self.handle_get_running_models)
+
     def handle_exception(self, func, *args, **kwargs):
         try:
             return func(*args, **kwargs)
@@ -177,3 +181,14 @@ class ZooKeeper:
         if 0 <= model_idx < len(self.running_models):
             return jsonify(self.running_models[model_idx].logs())
         return jsonify({'success': False, 'error': 'Model not found'}), 404
+
+    def handle_get_running_models(self):
+        ready_models = []
+        for model in self.running_models:
+            if model.ready():
+                ready_models.append({
+                    'model_name': model.model.name,
+                    'model_id': model.model.model_id,
+                    'listener': model.listener.__dict__
+                })
+        return jsonify({'running_models': ready_models})
