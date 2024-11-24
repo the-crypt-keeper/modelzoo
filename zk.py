@@ -7,7 +7,6 @@ import traceback
 from datetime import datetime
 from dataclasses import dataclass, asdict
 from asgiref.wsgi import WsgiToAsgi
-from proxy import ProxyServer
 
 from base import *
 from zoo import *
@@ -93,9 +92,9 @@ class ZooKeeper:
         self.app.jinja_env.globals.update(
             enumerate=enumerate
         )
-
-        # Create ProxyServer instance
-        self.proxy_server = ProxyServer(self)
+       
+    def get_asgi_app(self):
+        return WsgiToAsgi(self.app)
 
     def load_config(self, config_path: str):
         with open(config_path) as f:
@@ -182,18 +181,6 @@ class ZooKeeper:
 
     def get_random_port(self):
         return random.randint(50000, 60000)
-
-    def get_asgi_app(self):
-        flask_asgi = WsgiToAsgi(self.app)
-        proxy_asgi = self.proxy_server.get_asgi_app()
-
-        async def combined_app(scope, receive, send):
-            if scope['path'].startswith('/v1/'):
-                await proxy_asgi(scope, receive, send)
-            else:
-                await flask_asgi(scope, receive, send)
-
-        return combined_app
 
     def render_index(self):
         available_models = self.get_available_models()
