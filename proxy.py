@@ -42,15 +42,15 @@ class ProxyServer:
             content_type = resp.headers.get('content-type', 'application/json')
 
             def generate():
-                try:
-                    for chunk in resp.iter_content(chunk_size=4096):
+                for chunk in resp.iter_content(chunk_size=4096):
+                    try:
                         if chunk:  # filter out keep-alive new chunks
                             yield chunk
-                except ClientDisconnected:
-                    print("Client disconnected. Stopping stream.")
-                finally:
-                    print("Closing up shop.")
-                    resp.close()
+                    except GeneratorExit:
+                        print("Client disconnected. Stopping stream.")
+                        break
+                print("Closing up shop.")
+                resp.close()
 
             return Response(stream_with_context(generate()),
                             status=resp.status_code,
