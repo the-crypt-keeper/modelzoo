@@ -175,6 +175,7 @@ class RunningModel:
             try:
                 self.process.wait(timeout=5)  # Wait up to 5 seconds
             except subprocess.TimeoutExpired:
+                print('Attempting to force kill..')
                 self.process.kill()  # Force kill if not terminated
             self.process = None
 
