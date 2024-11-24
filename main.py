@@ -1,5 +1,8 @@
 import argparse
-import uvicorn
+from gevent.pywsgi import WSGIServer
+from gevent import monkey
+monkey.patch_all()
+
 from zk import ZooKeeper
 from proxy import ProxyServer
 
@@ -13,5 +16,9 @@ args = parser.parse_args()
 keeper = ZooKeeper(args.config)
 proxy = ProxyServer(keeper)
 
+app = keeper.app
+
 if __name__ == '__main__':
-    uvicorn.run(keeper.get_asgi_app(), host=args.host, port=args.port)
+    http_server = WSGIServer((args.host, args.port), app)
+    print(f"Server running on http://{args.host}:{args.port}")
+    http_server.serve_forever()
