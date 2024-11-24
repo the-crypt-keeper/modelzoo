@@ -4,10 +4,74 @@ from flask import Flask, jsonify, request, render_template
 import random
 import json
 import traceback
+from datetime import datetime
+from dataclasses import dataclass, asdict
+from operator import attrgetter
 
 from base import *
 from zoo import *
 from runtime import *
+
+@dataclass
+class ModelLaunchInfo:
+    zoo_name: str
+    model_name: str
+    launch_count: int = 0
+    last_launch: datetime = None
+    last_runtime: str = None
+    last_environment: str = None
+    last_params: Dict = None
+
+class ModelHistory:
+    def __init__(self, history_file: str = 'history.json'):
+        self.history_file = history_file
+        self.model_info: Dict[str, ModelLaunchInfo] = {}
+        self.load_history()
+
+    def load_history(self):
+        try:
+            with open(self.history_file, 'r') as f:
+                data = json.load(f)
+                for key, value in data.items():
+                    value['last_launch'] = datetime.fromisoformat(value['last_launch']) if value['last_launch'] else None
+                    self.model_info[key] = ModelLaunchInfo(**value)
+        except FileNotFoundError:
+            pass
+
+    def save_history(self):
+        data = {k: asdict(v) for k, v in self.model_info.items()}
+        for value in data.values():
+            value['last_launch'] = value['last_launch'].isoformat() if value['last_launch'] else None
+        with open(self.history_file, 'w') as f:
+            json.dump(data, f, indent=2)
+
+    def update_model_launch(self, zoo_name: str, model_name: str, runtime: str, environment: str, params: Dict):
+        key = f"{zoo_name}:{model_name}"
+        if key not in self.model_info:
+            self.model_info[key] = ModelLaunchInfo(zoo_name, model_name)
+        
+        info = self.model_info[key]
+        info.launch_count += 1
+        info.last_launch = datetime.now()
+        info.last_runtime = runtime
+        info.last_environment = environment
+        info.last_params = params
+        
+        self.save_history()
+
+    def get_sorted_models(self, models: List[Model]) -> List[Model]:
+        def get_launch_info(model):
+            key = f"{model.zoo_name}:{model.name}"
+            return self.model_info.get(key, ModelLaunchInfo(model.zoo_name, model.name))
+
+        return sorted(models, key=lambda m: (
+            get_launch_info(m).launch_count,
+            get_launch_info(m).last_launch or datetime.min
+        ), reverse=True)
+
+    def get_last_launch_info(self, zoo_name: str, model_name: str) -> ModelLaunchInfo:
+        key = f"{zoo_name}:{model_name}"
+        return self.model_info.get(key, ModelLaunchInfo(zoo_name, model_name))
 
 class ZooKeeper:
     def __init__(self, config_path: str):
@@ -16,6 +80,7 @@ class ZooKeeper:
         self.runtimes: Dict[str, Runtime] = {}
         self.environments: Dict[str, Environment] = {}
         self.running_models: List[RunningModel] = []
+        self.model_history = ModelHistory()
         
         # Load configuration
         self.load_config(config_path)
@@ -109,7 +174,7 @@ class ZooKeeper:
         for zoo in self.zoos.values():
             if zoo.enabled:
                 models.extend(zoo.catalog())
-        return models
+        return self.model_history.get_sorted_models(models)
 
     def get_random_port(self):
         return random.randint(50000, 60000)
@@ -118,13 +183,19 @@ class ZooKeeper:
         self.app.run(host=host, port=port, debug=debug)
 
     def render_index(self):
+        available_models = self.get_available_models()
+        model_launch_info = {
+            f"{model.zoo_name}:{model.name}": self.model_history.get_last_launch_info(model.zoo_name, model.name)
+            for model in available_models
+        }
         return render_template('index.html',
             zoos=self.zoos,
-            available_models=self.get_available_models(),
+            available_models=available_models,
             running_models=self.running_models,
             runtimes={name: {**runtime.__dict__, 'runtime_formats': runtime.runtime_formats} for name, runtime in self.runtimes.items()},
             environments=self.environments,
-            random_port=self.get_random_port()
+            random_port=self.get_random_port(),
+            model_launch_info=model_launch_info
         )
 
     def handle_toggle_zoo(self, name):
@@ -164,6 +235,9 @@ class ZooKeeper:
         # Spawn model
         running_model = runtime.spawn(environment, listener, model, params)
         self.running_models.append(running_model)
+
+        # Update launch history
+        self.model_history.update_model_launch(model.zoo_name, model.name, runtime_name, env_name, params)
 
         return jsonify({'success': True})
 
