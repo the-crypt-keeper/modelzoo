@@ -280,6 +280,12 @@ class TabbyRuntime(Runtime):
                 param_description="Optional additional arguments to the script",
                 param_type="str",
                 param_default=""
+            ),
+            RuntimeParameter(
+                param_name="gpu_split",
+                param_description="GPU split configuration",
+                param_type="str",
+                param_default=""
             )
         ]
 
@@ -324,6 +330,11 @@ class TabbyRuntime(Runtime):
         # Add disable auth if enabled
         if param_list.get("disable_auth", True):
             cmd.append("--disable-auth")
+
+        # Add GPU split if provided
+        gpu_split = param_list.get("gpu_split", "").strip()
+        if gpu_split:
+            cmd.extend(["--gpu-split", gpu_split])
 
         # Add extra arguments if provided
         extra_args = param_list.get("extra_args", "").strip()
