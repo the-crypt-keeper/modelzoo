@@ -256,14 +256,13 @@ class ZooKeeper:
 
     def handle_get_running_models(self):
         ready_models = []
-        for model in self.running_models:
-            if model.ready():
-                ready_models.append({
-                    'model_name': model.model_name,
-                    'model_id': model.model_id,
-                    'listener': model.listener.__dict__
-                })
+        for model in self.get_running_models():
+            ready_models.append({
+                'model_name': model.model_name,
+                'model_id': model.model_id,
+                'listener': model.listener.__dict__
+            })
         return jsonify({'running_models': ready_models})
 
     def get_running_models(self):
-        return [model for model in self.running_models if model.ready()]
+        return [model for model in self.running_models if model.status()['ready']]
