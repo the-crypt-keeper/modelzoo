@@ -267,7 +267,7 @@
                             ${launchInfo.last_launch ? `<br>Last: ${new Date(launchInfo.last_launch).toLocaleString()}` : ''}
                         </td>
                         <td>
-                            <button onclick="showLaunchDialog('${model.model_id}', '${model.model_name}', '${model.model_format}')">Launch</button>
+                            <button onclick="showLaunchDialog('${model.zoo_name}', '${model.model_id}', '${model.model_name}', '${model.model_format}')">Launch</button>
                         </td>
                     </tr>
                 `;
@@ -307,7 +307,7 @@
         });
 
         // Launch dialog
-        function showLaunchDialog(modelId, modelName, modelFormat) {
+        function showLaunchDialog(zooName, modelId, modelName, modelFormat) {
             $('#launch-dialog').show();
             $('#launch-dialog').data('modelId', modelId);
             $('#launch-model-name').text(modelName);
