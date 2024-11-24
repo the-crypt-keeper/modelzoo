@@ -262,11 +262,11 @@
                         <td>${model.model_format}</td>
                         <td>${humanSize(model.model_size)}</td>
                         <td>
-                            <button onclick="showLaunchDialog('${model.model_id}', '${model.model_name}', '${model.model_format}')">Launch</button>
-                        </td>
-                        <td>
                             ${model.launch_count ? `Launched ${model.launch_count} times` : 'Never launched'}
                             ${model.last_launch ? `<br>Last: ${new Date(model.last_launch).toLocaleString()}` : ''}
+                        </td>
+                        <td>
+                            <button onclick="showLaunchDialog('${model.model_id}', '${model.model_name}', '${model.model_format}')">Launch</button>
                         </td>
                     </tr>
                 `;
