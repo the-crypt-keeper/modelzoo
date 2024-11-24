@@ -188,11 +188,8 @@ class ZooKeeper:
         proxy_asgi = self.proxy_server.get_asgi_app()
 
         async def combined_app(scope, receive, send):
-            if scope['type'] == 'http':
-                if scope['path'].startswith('/v1/'):
-                    await proxy_asgi(scope, receive, send)
-                else:
-                    await flask_asgi(scope, receive, send)
+            if scope['path'].startswith('/v1/'):
+                await proxy_asgi(scope, receive, send)
             else:
                 await flask_asgi(scope, receive, send)
 

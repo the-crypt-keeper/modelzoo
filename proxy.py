@@ -1,9 +1,5 @@
-import asyncio
 import aiohttp
 from aiohttp import web
-import json
-from typing import List, Dict
-from asgiref.wsgi import WsgiToAsgi
 
 class ProxyServer:
     def __init__(self, zookeeper):
