@@ -2,7 +2,7 @@ from base import *
 from pathlib import Path
 from typing import Any, List, Dict
 import json
-import shutil
+import shutil  
 
 class FolderZoo(Zoo):
     """Zoo implementation that discovers GGUF models in a filesystem folder."""
