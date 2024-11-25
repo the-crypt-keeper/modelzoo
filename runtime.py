@@ -1,3 +1,4 @@
+import os
 from base import *
 from typing import Any, List, Dict
 
@@ -165,7 +166,8 @@ class LiteLLMRuntime(Runtime):
             "-m", model.model_id,
             "--alias", model.model_name,
             "--host", listener.host,
-            "--port", str(listener.port)
+            "--port", str(listener.port),
+            "--api_base", model.api_url
         ]
 
         # Add drop_params if enabled
@@ -177,12 +179,16 @@ class LiteLLMRuntime(Runtime):
         if max_tokens != '':
             cmd.extend(["--max_tokens", max_tokens])
 
+        # Prepare extra environment variables
+        extra_env = {"OPENAI_API_KEY": model.api_key}
+
         return RunningModel(
             runtime=self,
             model=model,
             environment=environment,
             listener=listener,
-            command=cmd
+            command=cmd,
+            extra_environment=extra_env
         )
 
 class KoboldCppRuntime(Runtime):
