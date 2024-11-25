@@ -132,8 +132,8 @@ class LiteLLMRuntime(Runtime):
             RuntimeParameter(
                 param_name="max_tokens",
                 param_description="Set max tokens for the model",
-                param_type="int",
-                param_default=2048
+                param_type="str",
+                param_default=''
             )
         ]
 
@@ -173,9 +173,9 @@ class LiteLLMRuntime(Runtime):
             cmd.append("--drop_params")
 
         # Add max_tokens if provided
-        max_tokens = param_list.get("max_tokens")
-        if max_tokens is not None:
-            cmd.extend(["--max_tokens", str(max_tokens)])
+        max_tokens = param_list.get("max_tokens",'')
+        if max_tokens != '':
+            cmd.extend(["--max_tokens", max_tokens])
 
         return RunningModel(
             runtime=self,

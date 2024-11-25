@@ -7,7 +7,7 @@ import shutil
 class StaticZoo(Zoo):
     """Zoo implementation that returns a static list of Models."""
 
-    def __init__(self, name: str, models: List[Model]):
+    def __init__(self, name: str, models: List[Dict]):
         """Initialize a StaticZoo with a specific list of models.
         
         Args:
@@ -15,14 +15,9 @@ class StaticZoo(Zoo):
             models (List[Model]): List of Model instances
         """
         super().__init__(name)
-        self.models = models
+        self.models = [Model(zoo_name=name, **m) for m in models]
 
     def catalog(self) -> List[Model]:
-        """Return the static list of models.
-        
-        Returns:
-            List[Model]: List of models in the zoo
-        """
         return self.models
 
     def __str__(self) -> str:
