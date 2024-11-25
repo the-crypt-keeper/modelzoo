@@ -65,9 +65,9 @@ class ModelHistory:
             return self.model_info.get(key, ModelLaunchInfo(model.zoo_name, model.model_name))
 
         return sorted(models, key=lambda m: (
-            get_launch_info(m).launch_count,
-            get_launch_info(m).last_launch or datetime.min
-        ), reverse=True)
+            -get_launch_info(m).launch_count,
+            m.model_name.lower()
+        ))
 
     def get_last_launch_info(self, zoo_name: str, model_name: str) -> ModelLaunchInfo:
         key = f"{zoo_name}:{model_name}"
