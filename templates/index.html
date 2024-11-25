@@ -143,7 +143,6 @@
             <h2>Available Models</h2>
             
             <div class="radio-group-container">
-                <label>Zoo:</label>
                 <div id="zoo-select" class="radio-group">
                     {% for name, zoo in zoos.items() %}
                     <input type="radio" name="zoo" id="zoo-{{ loop.index }}" value="{{ name }}" {% if loop.first %}checked{% endif %} onchange="updateModelTable()">
@@ -251,8 +250,7 @@
 
         function updateModelTable() {
             const selectedZoo = $('input[name="zoo"]:checked').val();
-            const models = zoos[selectedZoo].catalog();
-            populateTable(models);
+            populateTable(zoos[selectedZoo].catalog);
         }
 
         function populateTable(models) {

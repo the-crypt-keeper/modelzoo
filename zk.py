@@ -190,7 +190,7 @@ class ZooKeeper:
                 model_launch_info[key] = self.model_history.get_last_launch_info(model.zoo_name, model.model_name)
 
         return render_template('index.html',
-            zoos={name: {**zoo.__dict__, 'catalog': zoo.catalog()} for name, zoo in self.zoos.items()},
+            zoos={name: {'catalog': zoo.catalog()} for name, zoo in self.zoos.items()},
             running_models=self.running_models,
             runtimes={name: {**runtime.__dict__, 'runtime_formats': runtime.runtime_formats} for name, runtime in self.runtimes.items()},
             environments=self.environments,
