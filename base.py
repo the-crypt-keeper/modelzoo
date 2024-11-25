@@ -76,8 +76,8 @@ class Model:
 class RunningModel:
     """Class representing and controlling a running model instance."""
 
-    def __init__(self, runtime: Runtime, model: Model, environment: Environment, 
-                 listener: Listener, command: List[str]):
+    def __init__(self, runtime: Runtime, model: Model, environment: Environment,
+                 listener: Listener, command: List[str], extra_environment: Dict[str,str] = {}):
         """Initialize a new running model instance.
         
         Args:
@@ -88,6 +88,7 @@ class RunningModel:
             runtime (Runtime): The runtime that created this instance
         """
         self.model = model
+        self.extra_environment = extra_environment
         self.environment = environment
         self.listener = listener
         self.command = command
@@ -117,6 +118,7 @@ class RunningModel:
         # Create environment dict for subprocess
         env = os.environ.copy()
         env.update({k: str(v) for k, v in self.environment.vars.items()})
+        env.update(self.extra_environment)
 
         # Start process
         self.process = subprocess.Popen(

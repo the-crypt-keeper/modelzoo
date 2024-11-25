@@ -16,6 +16,8 @@ class StaticZoo(Zoo):
             models (List[Model]): List of Model instances
         """
         super().__init__(name)
+        for m in models:
+            if 'model_name' not in m: m['model_name'] = m['model_id']
         self.models = [Model(zoo_name=name, **m) for m in models]
 
     def catalog(self) -> List[Model]:
@@ -197,8 +199,8 @@ class OpenAIZoo(Zoo):
             for model_data in data.get('data', []):
                 model = Model(
                     zoo_name=self.name,
-                    model_id=model_data['id'],
-                    model_format="api",
+                    model_id='openai/'+model_data['id'],
+                    model_format="litellm",
                     model_name=model_data['id'],
                     api_url=self.api_url,
                     api_key=self.api_key

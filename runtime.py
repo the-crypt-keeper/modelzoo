@@ -166,10 +166,12 @@ class LiteLLMRuntime(Runtime):
             "-m", model.model_id,
             "--alias", model.model_name,
             "--host", listener.host,
-            "--port", str(listener.port),
-            "--api_base", model.api_url
+            "--port", str(listener.port)
         ]
 
+        if model.api_url:
+            cmd.extend(["--api_base", model.api_url])
+            
         # Add drop_params if enabled
         if param_list.get("drop_params", False):
             cmd.append("--drop_params")
@@ -406,7 +408,7 @@ class TabbyRuntime(Runtime):
             "--port", str(listener.port),
             "--cache-mode", param_list.get("cache_mode", "FP16")
         ]
-
+        
         # Add tensor parallel if enabled
         if param_list.get("tensor_parallel", False):
             cmd.extend(["--tensor-parallel", "True"])
