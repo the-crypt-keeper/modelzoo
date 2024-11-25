@@ -373,6 +373,7 @@
         }
 
         function launchModel() {
+            const zooName = $('input[name="zoo"]:checked').val();
             const modelId = $('#launch-dialog').data('modelId');
             const runtime = $('input[name="runtime"]:checked').val();
             const env = $('input[name="environment"]:checked').val();
@@ -399,6 +400,7 @@
                 url: '/api/model/launch',
                 method: 'POST',
                 data: {
+                    zoo_name: zooName,
                     model_id: modelId,
                     runtime: runtime,
                     environment: env,

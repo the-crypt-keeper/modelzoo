@@ -168,12 +168,8 @@ class ZooKeeper:
             return jsonify(self.running_models[model_idx].status())
         return jsonify({'success': False, 'error': 'Model not found'}), 404
 
-    def get_available_models(self):
-        models = []
-        for zoo in self.zoos.values():
-            if zoo.enabled:
-                models.extend(zoo.catalog())
-        return self.model_history.get_sorted_models(models)
+    def sort_models(self, catalog):
+        return self.model_history.get_sorted_models(catalog)
 
     def get_random_port(self):
         return random.randint(50000, 60000)
@@ -186,7 +182,7 @@ class ZooKeeper:
                 model_launch_info[key] = self.model_history.get_last_launch_info(model.zoo_name, model.model_name)
 
         return render_template('index.html',
-            zoos={name: {'catalog': zoo.catalog()} for name, zoo in self.zoos.items()},
+            zoos={name: {'catalog': self.sort_models(zoo.catalog())} for name, zoo in self.zoos.items()},
             running_models=self.running_models,
             runtimes={name: {**runtime.__dict__} for name, runtime in self.runtimes.items()},
             environments=self.environments,
@@ -196,6 +192,7 @@ class ZooKeeper:
 
     def handle_launch_model(self):
         data = request.form
+        zoo_name = data['zoo_name']
         model_id = data['model_id']
         runtime_name = data['runtime']
         env_name = data['environment']
@@ -203,12 +200,11 @@ class ZooKeeper:
         params = json.loads(data['params'])
 
         # Find model
-        model = None
-        for m in self.get_available_models():
-            if m.model_id == model_id:
-                model = m
-                break
-        
+        zoo = self.zoos.get(zoo_name)
+        if not zoo:
+            return jsonify({'success': False, 'error': 'Zoo not found'}), 404
+
+        model = next((m for m in zoo.catalog() if m.model_id == model_id), None)
         if not model:
             return jsonify({'success': False, 'error': 'Model not found'}), 404
 
