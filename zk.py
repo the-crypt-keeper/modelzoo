@@ -130,10 +130,6 @@ class ZooKeeper:
         def index():
             return self.handle_exception(self.render_index)
 
-        @self.app.route('/api/zoo/<name>/toggle', methods=['POST'])
-        def toggle_zoo(name):
-            return self.handle_exception(self.handle_toggle_zoo, name)
-
         @self.app.route('/api/model/launch', methods=['POST'])
         def launch_model():
             return self.handle_exception(self.handle_launch_model)
@@ -192,17 +188,11 @@ class ZooKeeper:
         return render_template('index.html',
             zoos={name: {'catalog': zoo.catalog()} for name, zoo in self.zoos.items()},
             running_models=self.running_models,
-            runtimes={name: {**runtime.__dict__, 'runtime_formats': runtime.runtime_formats} for name, runtime in self.runtimes.items()},
+            runtimes={name: {**runtime.__dict__} for name, runtime in self.runtimes.items()},
             environments=self.environments,
             random_port=self.get_random_port(),
             model_launch_info=model_launch_info
         )
-
-    def handle_toggle_zoo(self, name):
-        if name in self.zoos:
-            self.zoos[name].toggle()
-            return jsonify({'success': True})
-        return jsonify({'success': False, 'error': 'Zoo not found'}), 404
 
     def handle_launch_model(self):
         data = request.form
