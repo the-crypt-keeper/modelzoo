@@ -169,7 +169,7 @@ class FolderZoo(Zoo):
 class OpenAIZoo(Zoo):
     """Zoo implementation that fetches models from an OpenAI-compatible API."""
 
-    def __init__(self, name: str, api_url: str, api_key: str, cache: bool = True, models: List[Dict] = None):
+    def __init__(self, name: str, api_url: str, api_key: str, cache: bool = True, models: List[str] = None):
         """Initialize an OpenAIZoo with API details.
         
         Args:
@@ -177,7 +177,7 @@ class OpenAIZoo(Zoo):
             api_url (str): Base URL of the OpenAI-compatible API
             api_key (str): API key for authentication
             cache (bool): Whether to cache the model list (default: True)
-            models (List[Dict]): Optional list of models to override API exploration
+            models (List[str]): Optional list of models to override API exploration
         """
         super().__init__(name)
         self.api_url = api_url.rstrip('/')
@@ -195,9 +195,9 @@ class OpenAIZoo(Zoo):
         if self.models is not None:
             return [Model(
                 zoo_name=self.name,
-                model_id='openai/'+m['id'],
+                model_id='openai/'+m,
                 model_format="litellm",
-                model_name=m['id'],
+                model_name=m.split('/')[-1].replace('.gguf', '').replace(' ','-'),
                 api_url=self.api_url,
                 api_key=self.api_key
             ) for m in self.models]
@@ -207,19 +207,24 @@ class OpenAIZoo(Zoo):
 
         try:
             response = requests.get(
-                f"{self.api_url}/v1/models",
+                f"{self.api_url}/models",
                 headers={"Authorization": f"Bearer {self.api_key}"}
             )
-            response.raise_for_status()
+            if response.status_code != 200: print(response.text)
             data = response.json()
+            if isinstance(data, list): data = { 'data': data}
             
             models = []
             for model_data in data.get('data', []):
+                model_id = model_data['id']
+                if 'azureml://' in model_id: model_id = model_data['name']
+                model_name = model_id.split('/')[-1].replace('.gguf', '').replace(' ','-')
+
                 model = Model(
                     zoo_name=self.name,
-                    model_id='openai/'+model_data['id'],
+                    model_id='openai/'+model_id,
                     model_format="litellm",
-                    model_name=model_data['id'],
+                    model_name=model_name,
                     api_url=self.api_url,
                     api_key=self.api_key
                 )

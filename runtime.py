@@ -182,7 +182,7 @@ class LiteLLMRuntime(Runtime):
             cmd.extend(["--max_tokens", max_tokens])
 
         # Prepare extra environment variables
-        extra_env = {"OPENAI_API_KEY": model.api_key}
+        extra_env = {"OPENAI_API_KEY": model.api_key} if model.api_key else {}
 
         return RunningModel(
             runtime=self,
