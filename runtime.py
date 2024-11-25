@@ -107,6 +107,84 @@ class LlamaRuntime(Runtime):
             command=cmd
         )
 
+class LiteLLMRuntime(Runtime):
+    """Runtime implementation for LiteLLM server."""
+
+    def __init__(self, name: str, bin_path: str = "litellm"):
+        """Initialize LiteLLMRuntime with path to litellm binary.
+        
+        Args:
+            name (str): Name of the runtime
+            bin_path (str): Path to litellm executable, defaults to 'litellm'
+        """
+        self.runtime_name = name
+        self.runtime_formats = ["litellm"]
+        self.bin_path = bin_path
+        
+        # Define available parameters
+        self.runtime_params = [
+            RuntimeParameter(
+                param_name="drop_params",
+                param_description="Drop unmapped parameters",
+                param_type="bool",
+                param_default=False
+            ),
+            RuntimeParameter(
+                param_name="max_tokens",
+                param_description="Set max tokens for the model",
+                param_type="int",
+                param_default=2048
+            )
+        ]
+
+    def spawn(self, 
+              environment: Environment, 
+              listener: Listener, 
+              model: Model, 
+              param_list: dict[str, Any]) -> RunningModel:
+        """Spawn a LiteLLM server instance.
+        
+        Args:
+            environment (Environment): Environment configuration
+            listener (Listener): Network binding configuration
+            model (Model): Model to serve
+            param_list (Dict[str, Any]): Runtime parameters
+
+        Returns:
+            RunningModel: Handle to the running instance
+        
+        Raises:
+            ValueError: If model format is not supported
+        """
+        if model.model_format not in self.runtime_formats:
+            raise ValueError(f"Unsupported model format: {model.model_format}")
+
+        # Build command line
+        cmd = [
+            self.bin_path,
+            "-m", model.model_id,
+            "--alias", model.model_name,
+            "--host", listener.host,
+            "--port", str(listener.port)
+        ]
+
+        # Add drop_params if enabled
+        if param_list.get("drop_params", False):
+            cmd.append("--drop_params")
+
+        # Add max_tokens if provided
+        max_tokens = param_list.get("max_tokens")
+        if max_tokens is not None:
+            cmd.extend(["--max_tokens", str(max_tokens)])
+
+        return RunningModel(
+            runtime=self,
+            model=model,
+            environment=environment,
+            listener=listener,
+            command=cmd
+        )
+
 class KoboldCppRuntime(Runtime):
     """Runtime implementation for KoboldCpp server."""
 
