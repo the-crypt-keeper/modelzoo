@@ -34,11 +34,6 @@
         .status-stopped {
             background-color: red;
         }
-        .status-stopped {
-            color: red;
-            font-weight: bold;
-            margin-left: 5px;
-        }
         .logs {
             font-family: monospace;
             background: #f0f0f0;
@@ -218,9 +213,6 @@
                 <h3>
                     <span class="status-indicator {{ 'status-ready' if running.status()['ready'] else 'status-starting' if running.status()['running'] else 'status-stopped' }}"></span>
                     {{ running.model.model_name }}
-                    {% if not running.status()['running'] %}
-                    <span class="status-stopped">X</span>
-                    {% endif %}
                 </h3>
                 <p>{{ running.listener }} via <i>{{ running.runtime.runtime_name }}</i> on <i>{{ running.environment.name }}</i></p>
                 <button onclick="toggleLogs({{ loop.index0 }})">Show/Hide Logs</button>
@@ -445,7 +437,6 @@
                 $.get(`/api/model/${idx}/status`, function(status) {
                     const runningModel = $(`#logs-${idx}`).closest('.running-model');
                     const statusIndicator = runningModel.find('.status-indicator');
-                    const stoppedIndicator = runningModel.find('.status-stopped');
                     
                     statusIndicator.removeClass('status-ready status-starting status-stopped');
                     if (status.ready) {
@@ -454,12 +445,6 @@
                         statusIndicator.addClass('status-starting');
                     } else {
                         statusIndicator.addClass('status-stopped');
-                    }
-                    
-                    if (status.running) {
-                        stoppedIndicator.hide();
-                    } else {
-                        stoppedIndicator.show();
                     }
                 });
             }
