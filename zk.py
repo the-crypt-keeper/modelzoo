@@ -93,9 +93,6 @@ class ZooKeeper:
             enumerate=enumerate
         )
         
-        # Set default zoo
-        self.default_zoo = next(iter(self.zoos.keys())) if self.zoos else None
-       
     def get_asgi_app(self):
         return WsgiToAsgi(self.app)
 
@@ -193,8 +190,7 @@ class ZooKeeper:
                 model_launch_info[key] = self.model_history.get_last_launch_info(model.zoo_name, model.model_name)
 
         return render_template('index.html',
-            zoos=self.zoos,
-            default_zoo=self.default_zoo,
+            zoos={name: {**zoo.__dict__, 'catalog': zoo.catalog()} for name, zoo in self.zoos.items()},
             running_models=self.running_models,
             runtimes={name: {**runtime.__dict__, 'runtime_formats': runtime.runtime_formats} for name, runtime in self.runtimes.items()},
             environments=self.environments,
