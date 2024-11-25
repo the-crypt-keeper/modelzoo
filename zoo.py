@@ -2,7 +2,31 @@ from base import *
 from pathlib import Path
 from typing import Any, List, Dict
 import json
-import shutil  
+import shutil
+
+class StaticZoo(Zoo):
+    """Zoo implementation that returns a static list of Models."""
+
+    def __init__(self, name: str, models: List[Model]):
+        """Initialize a StaticZoo with a specific list of models.
+        
+        Args:
+            name (str): Name of the zoo
+            models (List[Model]): List of Model instances
+        """
+        super().__init__(name)
+        self.models = models
+
+    def catalog(self) -> List[Model]:
+        """Return the static list of models.
+        
+        Returns:
+            List[Model]: List of models in the zoo
+        """
+        return self.models
+
+    def __str__(self) -> str:
+        return f"StaticZoo(name={self.name}, models={len(self.models)})"
 
 class FolderZoo(Zoo):
     """Zoo implementation that discovers GGUF models in a filesystem folder."""
