@@ -141,14 +141,16 @@
     <div class="left-column">
         <div class="model-list">
             <h2>Available Models</h2>
-
-            {% for name, zoo in zoos.items() %}
-            <div class="zoo-list">
-                <input type="checkbox" class="zoo-toggle" data-zoo="{{ name }}" 
-                       {% if zoo.enabled %}checked{% endif %}>
-                {{ name }} - {{ zoo }}
+            
+            <div class="radio-group-container">
+                <label>Zoo:</label>
+                <div id="zoo-select" class="radio-group">
+                    {% for name, zoo in zoos.items() %}
+                    <input type="radio" name="zoo" id="zoo-{{ loop.index }}" value="{{ name }}" {% if name == default_zoo %}checked{% endif %} onchange="updateModelTable()">
+                    <label for="zoo-{{ loop.index }}">{{ name }}</label>
+                    {% endfor %}
+                </div>
             </div>
-            {% endfor %}
 
             <table id="model-table">
                 <thead>
@@ -164,11 +166,6 @@
                     <!-- Table body will be populated dynamically -->
                 </tbody>
             </table>
-            <div id="show-more-container">
-                <button id="show-more-btn" onclick="toggleShowMore()">
-                    Show Less <span class="chevron">▲</span>
-                </button>
-            </div>
         </div>
     </div>
 
@@ -237,7 +234,7 @@
 
     <script>
         const runtimes = {{ runtimes | tojson | safe }};
-        const allModels = {{ available_models | tojson | safe }};
+        const zoos = {{ zoos | tojson | safe }};
         const model_launch_info = {{ model_launch_info | tojson | safe }};
 
         // Initialize logs for non-ready models
@@ -249,13 +246,19 @@
                     pollLogs(index);
                 }
             });
+            updateModelTable();
         });
 
-        function populateTable(models, limit = null) {
+        function updateModelTable() {
+            const selectedZoo = $('input[name="zoo"]:checked').val();
+            const models = zoos[selectedZoo].catalog();
+            populateTable(models);
+        }
+
+        function populateTable(models) {
             const tbody = document.querySelector('#model-table tbody');
             tbody.innerHTML = '';
-            const displayModels = limit ? models.slice(0, limit) : models;
-            displayModels.forEach(model => {
+            models.forEach(model => {
                 const launchInfo = model_launch_info[`${model.zoo_name}:${model.model_name}`] || {};
                 tbody.innerHTML += `
                     <tr class="model-row">
@@ -274,38 +277,11 @@
             });
         }
 
-        function toggleShowMore() {
-            const btn = document.getElementById('show-more-btn');
-            const chevron = btn.querySelector('.chevron');
-
-            if (btn.textContent.includes('Show More')) {
-                populateTable(allModels);
-                btn.innerHTML = 'Show Less <span class="chevron">▲</span>';
-            } else {
-                populateTable(allModels, 10);
-                btn.innerHTML = 'Show More <span class="chevron">▼</span>';
-            }
-        }
-
-        // Populate table on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            populateTable(allModels, 10);
-            document.getElementById('show-more-btn').innerHTML = 'Show More <span class="chevron">▼</span>';
-        });
-
         function humanSize(bytes) {
             if (!bytes || bytes == 0) { return "N/A"; }
             const gb = bytes / (1024 * 1024 * 1024);
             return gb.toFixed(2);
         }
-
-        // Zoo toggle handling
-        $('.zoo-toggle').change(function() {
-            const zoo = $(this).data('zoo');
-            $.post(`/api/zoo/${zoo}/toggle`, function() {
-                location.reload();
-            });
-        });
 
         // Launch dialog
         function showLaunchDialog(zooName, modelId, modelName, modelFormat) {

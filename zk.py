@@ -92,6 +92,9 @@ class ZooKeeper:
         self.app.jinja_env.globals.update(
             enumerate=enumerate
         )
+        
+        # Set default zoo
+        self.default_zoo = next(iter(self.zoos.keys())) if self.zoos else None
        
     def get_asgi_app(self):
         return WsgiToAsgi(self.app)
@@ -183,15 +186,15 @@ class ZooKeeper:
         return random.randint(50000, 60000)
 
     def render_index(self):
-        available_models = self.get_available_models()
-        model_launch_info = {
-            f"{model.zoo_name}:{model.model_name}": self.model_history.get_last_launch_info(model.zoo_name, model.model_name)
-            for model in available_models
-        }
+        model_launch_info = {}
+        for zoo in self.zoos.values():
+            for model in zoo.catalog():
+                key = f"{model.zoo_name}:{model.model_name}"
+                model_launch_info[key] = self.model_history.get_last_launch_info(model.zoo_name, model.model_name)
 
         return render_template('index.html',
             zoos=self.zoos,
-            available_models=available_models,
+            default_zoo=self.default_zoo,
             running_models=self.running_models,
             runtimes={name: {**runtime.__dict__, 'runtime_formats': runtime.runtime_formats} for name, runtime in self.runtimes.items()},
             environments=self.environments,
