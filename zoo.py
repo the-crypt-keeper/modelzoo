@@ -169,24 +169,42 @@ class FolderZoo(Zoo):
 class OpenAIZoo(Zoo):
     """Zoo implementation that fetches models from an OpenAI-compatible API."""
 
-    def __init__(self, name: str, api_url: str, api_key: str):
+    def __init__(self, name: str, api_url: str, api_key: str, cache: bool = True, models: List[Dict] = None):
         """Initialize an OpenAIZoo with API details.
         
         Args:
             name (str): Name of the zoo
             api_url (str): Base URL of the OpenAI-compatible API
             api_key (str): API key for authentication
+            cache (bool): Whether to cache the model list (default: True)
+            models (List[Dict]): Optional list of models to override API exploration
         """
         super().__init__(name)
         self.api_url = api_url.rstrip('/')
         self.api_key = api_key
+        self.cache = cache
+        self._cached_models = None
+        self.models = models
 
     def catalog(self) -> List[Model]:
-        """Fetch and return list of available models from the API.
+        """Fetch and return list of available models from the API or use provided models.
         
         Returns:
-            List[Model]: List of models available through the API
+            List[Model]: List of models available through the API or provided models
         """
+        if self.models is not None:
+            return [Model(
+                zoo_name=self.name,
+                model_id='openai/'+m['id'],
+                model_format="litellm",
+                model_name=m['id'],
+                api_url=self.api_url,
+                api_key=self.api_key
+            ) for m in self.models]
+
+        if self.cache and self._cached_models is not None:
+            return self._cached_models
+
         try:
             response = requests.get(
                 f"{self.api_url}/v1/models",
@@ -207,10 +225,13 @@ class OpenAIZoo(Zoo):
                 )
                 models.append(model)
             
+            if self.cache:
+                self._cached_models = models
+            
             return models
         except requests.RequestException as e:
             print(f"Error fetching models from API: {e}")
             return []
 
     def __str__(self) -> str:
-        return f"OpenAIZoo(api_url={self.api_url})"
+        return f"OpenAIZoo(api_url={self.api_url}, cache={self.cache}, models_override={'Yes' if self.models else 'No'})"
