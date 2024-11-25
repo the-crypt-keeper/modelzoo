@@ -60,6 +60,8 @@ class Model:
     model_name: str = None
     model_size: int = None
     model_architecture: str = None
+    api_url: str = None
+    api_key: str = None
 
     def __str__(self) -> str:
         parts = [f"Model({self.model_name}",
@@ -67,6 +69,7 @@ class Model:
                 
         if self.model_size is not None:         parts.append(f"size={self.model_size}")
         if self.model_architecture is not None: parts.append(f"arch={self.model_architecture}")
+        if self.api_url is not None:            parts.append(f"api_url={self.api_url}")
         
         return ', '.join(parts) + ')'
 

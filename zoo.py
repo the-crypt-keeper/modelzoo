@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Any, List, Dict
 import json
 import shutil
+import requests
 
 class StaticZoo(Zoo):
     """Zoo implementation that returns a static list of Models."""
@@ -162,3 +163,52 @@ class FolderZoo(Zoo):
 
     def __str__(self) -> str:
         return f"FolderZoo(path={self.path})"
+
+class OpenAIZoo(Zoo):
+    """Zoo implementation that fetches models from an OpenAI-compatible API."""
+
+    def __init__(self, name: str, api_url: str, api_key: str):
+        """Initialize an OpenAIZoo with API details.
+        
+        Args:
+            name (str): Name of the zoo
+            api_url (str): Base URL of the OpenAI-compatible API
+            api_key (str): API key for authentication
+        """
+        super().__init__(name)
+        self.api_url = api_url.rstrip('/')
+        self.api_key = api_key
+
+    def catalog(self) -> List[Model]:
+        """Fetch and return list of available models from the API.
+        
+        Returns:
+            List[Model]: List of models available through the API
+        """
+        try:
+            response = requests.get(
+                f"{self.api_url}/v1/models",
+                headers={"Authorization": f"Bearer {self.api_key}"}
+            )
+            response.raise_for_status()
+            data = response.json()
+            
+            models = []
+            for model_data in data.get('data', []):
+                model = Model(
+                    zoo_name=self.name,
+                    model_id=model_data['id'],
+                    model_format="api",
+                    model_name=model_data['id'],
+                    api_url=self.api_url,
+                    api_key=self.api_key
+                )
+                models.append(model)
+            
+            return models
+        except requests.RequestException as e:
+            print(f"Error fetching models from API: {e}")
+            return []
+
+    def __str__(self) -> str:
+        return f"OpenAIZoo(api_url={self.api_url})"
