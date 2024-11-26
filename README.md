@@ -18,9 +18,55 @@ ModelZoo is composed of several key components:
 
 Zoos are responsible for discovering and cataloging models. The system supports different types of zoos:
 
-- **FolderZoo**: Discovers models in a specified file system folder.
-- **StaticZoo**: Returns a predefined list of models.
-- **OpenAIZoo**: Fetches models from an OpenAI-compatible API.
+1. **FolderZoo**: Discovers models in a specified file system folder.
+   - Parameters:
+     - `name` (str): Name of the zoo
+     - `path` (str): Path to folder containing models
+   - Example:
+     ```yaml
+     - name: LocalModels
+       class: FolderZoo
+       params:
+         path: /path/to/models
+     ```
+
+2. **StaticZoo**: Returns a predefined list of models.
+   - Parameters:
+     - `name` (str): Name of the zoo
+     - `models` (List[Dict]): List of model dictionaries
+   - Example:
+     ```yaml
+     - name: PredefinedModels
+       class: StaticZoo
+       params:
+         models:
+           - model_id: gpt2
+             model_name: GPT-2
+             model_format: huggingface
+           - model_id: bert-base-uncased
+             model_name: BERT Base Uncased
+             model_format: huggingface
+     ```
+
+3. **OpenAIZoo**: Fetches models from an OpenAI-compatible API.
+   - Parameters:
+     - `name` (str): Name of the zoo
+     - `api_url` (str): Base URL of the OpenAI-compatible API
+     - `api_key` (str, optional): API key for authentication
+     - `api_key_env` (str, optional): Environment variable name containing the API key
+     - `cache` (bool): Whether to cache the model list (default: True)
+     - `models` (List[str], optional): Optional list of models to override API exploration
+   - Example:
+     ```yaml
+     - name: OpenAIModels
+       class: OpenAIZoo
+       params:
+         api_url: https://api.openai.com/v1
+         api_key_env: OPENAI_API_KEY
+         cache: true
+     ```
+
+Each zoo type is designed to accommodate different model discovery and management needs, allowing for flexibility in how models are sourced and cataloged within the ModelZoo system.
 
 ### Models
 
