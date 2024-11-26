@@ -3,7 +3,6 @@ import yaml
 from flask import Flask, jsonify, request, render_template
 import random
 import json
-import traceback
 from datetime import datetime
 from dataclasses import dataclass, asdict
 from asgiref.wsgi import WsgiToAsgi
@@ -11,6 +10,7 @@ from asgiref.wsgi import WsgiToAsgi
 from base import *
 from zoo import *
 from runtime import *
+from middleware import exception_handler
 
 @dataclass
 class ModelLaunchInfo:
@@ -126,43 +126,12 @@ class ZooKeeper:
             self.environments[env_config['name']] = env
 
     def setup_routes(self):
-        self.app.route('/')(self.index)
-        self.app.route('/api/model/launch', methods=['POST'])(self.launch_model)
-        self.app.route('/api/model/<int:model_idx>/stop', methods=['POST'])(self.stop_model)
-        self.app.route('/api/model/<int:model_idx>/logs')(self.get_logs)
-        self.app.route('/api/model/<int:model_idx>/status')(self.get_status)
-        self.app.route('/api/running_models')(self.get_running_models)
-
-    def index(self):
-        return self.handle_exception(self.render_index)
-
-    def launch_model(self):
-        return self.handle_exception(self.handle_launch_model)
-
-    def stop_model(self, model_idx):
-        return self.handle_exception(self.handle_stop_model, model_idx)
-
-    def get_logs(self, model_idx):
-        return self.handle_exception(self.handle_get_logs, model_idx)
-
-    def get_status(self, model_idx):
-        return self.handle_exception(self.handle_get_status, model_idx)
-
-    def get_running_models(self):
-        return self.handle_exception(self.handle_get_running_models)
-
-    def handle_exception(self, func, *args, **kwargs):
-        try:
-            return func(*args, **kwargs)
-        except Exception as e:
-            error_message = str(e)
-            stack_trace = traceback.format_exc()
-            print(f"Error: {error_message}\n{stack_trace}")
-            return jsonify({
-                'success': False,
-                'error': error_message,
-                'stack_trace': stack_trace
-            }), 500
+        self.app.route('/')(exception_handler(self.render_index))
+        self.app.route('/api/model/launch', methods=['POST'])(exception_handler(self.handle_launch_model))
+        self.app.route('/api/model/<int:model_idx>/stop', methods=['POST'])(exception_handler(self.handle_stop_model))
+        self.app.route('/api/model/<int:model_idx>/logs')(exception_handler(self.handle_get_logs))
+        self.app.route('/api/model/<int:model_idx>/status')(exception_handler(self.handle_get_status))
+        self.app.route('/api/running_models')(exception_handler(self.handle_get_running_models))
 
     def handle_get_status(self, model_idx):
         if 0 <= model_idx < len(self.running_models):
