@@ -126,29 +126,30 @@ class ZooKeeper:
             self.environments[env_config['name']] = env
 
     def setup_routes(self):
-        @self.app.route('/')
-        def index():
-            return self.handle_exception(self.render_index)
+        self.app.route('/')(self.index)
+        self.app.route('/api/model/launch', methods=['POST'])(self.launch_model)
+        self.app.route('/api/model/<int:model_idx>/stop', methods=['POST'])(self.stop_model)
+        self.app.route('/api/model/<int:model_idx>/logs')(self.get_logs)
+        self.app.route('/api/model/<int:model_idx>/status')(self.get_status)
+        self.app.route('/api/running_models')(self.get_running_models)
 
-        @self.app.route('/api/model/launch', methods=['POST'])
-        def launch_model():
-            return self.handle_exception(self.handle_launch_model)
+    def index(self):
+        return self.handle_exception(self.render_index)
 
-        @self.app.route('/api/model/<int:model_idx>/stop', methods=['POST'])
-        def stop_model(model_idx):
-            return self.handle_exception(self.handle_stop_model, model_idx)
+    def launch_model(self):
+        return self.handle_exception(self.handle_launch_model)
 
-        @self.app.route('/api/model/<int:model_idx>/logs')
-        def get_logs(model_idx):
-            return self.handle_exception(self.handle_get_logs, model_idx)
+    def stop_model(self, model_idx):
+        return self.handle_exception(self.handle_stop_model, model_idx)
 
-        @self.app.route('/api/model/<int:model_idx>/status')
-        def get_status(model_idx):
-            return self.handle_exception(self.handle_get_status, model_idx)
+    def get_logs(self, model_idx):
+        return self.handle_exception(self.handle_get_logs, model_idx)
 
-        @self.app.route('/api/running_models')
-        def get_running_models():
-            return self.handle_exception(self.handle_get_running_models)
+    def get_status(self, model_idx):
+        return self.handle_exception(self.handle_get_status, model_idx)
+
+    def get_running_models(self):
+        return self.handle_exception(self.handle_get_running_models)
 
     def handle_exception(self, func, *args, **kwargs):
         try:
