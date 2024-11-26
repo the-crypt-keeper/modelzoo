@@ -93,7 +93,8 @@ Runtimes are responsible for serving models. They include:
      ```
 
 2. **LiteLLMRuntime**: For serving models via LiteLLM.
-   - Compatible model formats: All formats supported by LiteLLM (including OpenAI, Azure, Anthropic, and various open-source models)
+   - Compatible model formats: litellm
+      - All formats supported by LiteLLM (including OpenAI, Azure, Anthropic, and various open-source models)
    - Parameters:
      - `name` (str): Name of the runtime
      - `bin_path` (str, optional): Path to the LiteLLM binary (default: "litellm")
@@ -106,7 +107,7 @@ Runtimes are responsible for serving models. They include:
      ```
 
 3. **KoboldCppRuntime**: For serving models using KoboldCpp.
-   - Compatible model formats: gguf, gptq, safetensors
+   - Compatible model formats: gguf
    - Parameters:
      - `name` (str): Name of the runtime
      - `bin_path` (str): Path to the KoboldCpp binary
@@ -119,7 +120,7 @@ Runtimes are responsible for serving models. They include:
      ```
 
 4. **TabbyRuntime**: For serving models using TabbyAPI.
-   - Compatible model formats: gguf, ggml, safetensors
+   - Compatible model formats: gptq, exl2
    - Parameters:
      - `name` (str): Name of the runtime
      - `script_path` (str): Path to the TabbyAPI start.sh script
