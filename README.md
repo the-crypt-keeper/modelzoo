@@ -57,23 +57,10 @@ ZooKeeper is the main application that:
    - Listing available models from all zoos.
    - Launching models with specific runtimes and configurations.
    - Managing running models (viewing logs, stopping models).
-
-## Additional Features
-
-### Proxy Server
-
-The system includes a proxy server (`proxy.py`) that forwards requests to the appropriate running model, allowing unified access to all launched models.
-
-### Model History
-
-ModelZoo keeps track of model launch history, including:
-
-- Number of times a model has been launched.
-- Last launch time.
-- Last used runtime and environment.
-- Last used parameters.
-
-This history is used to provide better user experience by pre-filling launch configurations based on previous usage.
+4. Includes a proxy server (`proxy.py`) that forwards requests to the appropriate running model, allowing unified access to all launched models.
+5. Keeps track of model launch history
+   - Number of times a model has been launched, and the last launch time (to sort models by most frequently used)
+   - Last used enviroment and parameters (provides a better user experience by pre-filling launch configurations based on previous usage)
 
 ## Configuration
 
@@ -87,14 +74,10 @@ Example configuration:
 
 ```yaml
 zoos:
-   - name: SSDZoo
+   - name: SSD
      class: FolderZoo
      params:
         path: /mnt/ssd0
-   - name: NVMEZoo
-     class: FolderZoo
-     params:
-        path: /mnt/nvme0
 
 runtimes:
    - name: LlamaRuntime
@@ -108,23 +91,11 @@ envs:
    - name: "P40[0,1]"
      vars:
         CUDA_VISIBLE_DEVICES: 0,1
+   - name: "No GPU"
+     vars: {}        
 ```
 
-## Usage
-
-1. Configure the system using the YAML configuration file.
-2. Run the ZooKeeper application.
-3. Access the web interface to:
-   - View available models.
-   - Launch models with specific configurations.
-   - Manage running models.
-
-## Dependencies
-
-- Flask
-- PyYAML
-- Requests
-- ASGI server (e.g., uvicorn)
+This example assumes you have some `*.gguf` files under /mnt/ssd0 and that you have a compiled llama.cpp server binary at the specified path.
 
 ## Getting Started
 
@@ -138,4 +109,7 @@ envs:
    ```
    python ./main.py --config config.yaml
    ```
-5. Access the web interface (listening at http://0.0.0.0:3333/ by default) to start managing your models!
+5. Access the web interface (listening at http://0.0.0.0:3333/ by default) to:
+   - View available models.
+   - Launch models with specific configurations.
+   - Manage running models (view logs, stop).
