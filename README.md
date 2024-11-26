@@ -9,8 +9,10 @@ ModelZoo is composed of several key components:
 1. **Zoos**: Discovery systems that catalog models.
 2. **Models**: Data objects representing LLMs.
 3. **Runtimes**: Backends that can serve models in specific environments.
-4. **Environments**: GPU Configurations (enviroment variables) for running models.
+4. **Environments**: GPU Configurations (environment variables) for running models.
 5. **ZooKeeper**: The main application that manages zoos, runtimes, and provides a web-based user interface.
+6. **Proxy**: A component that forwards requests to the appropriate running model, allowing unified access to all launched models.
+7. **ModelHistory**: Keeps track of model launch history, including frequency of use and last used configurations.
 
 ## Key Components
 
