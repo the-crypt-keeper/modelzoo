@@ -40,12 +40,9 @@ Zoos are responsible for discovering and cataloging models. The system supports 
        class: StaticZoo
        params:
          models:
-           - model_id: gpt2
-             model_name: GPT-2
-             model_format: huggingface
-           - model_id: bert-base-uncased
-             model_name: BERT Base Uncased
-             model_format: huggingface
+           - model_id: chatgpt
+             model_name: ChatGPT
+             model_format: litellm
      ```
 
 3. **OpenAIZoo**: Fetches models from an OpenAI-compatible API.
