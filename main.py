@@ -1,4 +1,5 @@
 import argparse
+import signal
 from gevent.pywsgi import WSGIServer
 from gevent import monkey
 monkey.patch_all()
@@ -18,7 +19,20 @@ proxy = ProxyServer(keeper)
 
 app = keeper.app
 
+def signal_handler(signum, frame):
+    print("Received signal to terminate. Shutting down gracefully...")
+    keeper.shutdown()
+    http_server.stop()
+
 if __name__ == '__main__':
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+
     http_server = WSGIServer((args.host, args.port), app)
     print(f"Server running on http://{args.host}:{args.port}")
-    http_server.serve_forever()
+    try:
+        http_server.serve_forever()
+    except KeyboardInterrupt:
+        print("Keyboard interrupt received. Shutting down gracefully...")
+        keeper.shutdown()
+        http_server.stop()

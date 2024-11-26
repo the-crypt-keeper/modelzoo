@@ -114,6 +114,17 @@ class ZooKeeper:
     def get_asgi_app(self):
         return WsgiToAsgi(self.app)
 
+    def shutdown(self):
+        print("Stopping all running models...")
+        for model in self.running_models:
+            try:
+                model.stop()
+                print(f"Stopped model: {model.model.model_name}")
+            except Exception as e:
+                print(f"Error stopping model {model.model.model_name}: {str(e)}")
+        self.running_models.clear()
+        print("All models stopped.")
+
     def load_config(self, config_path: str):
         with open(config_path) as f:
             config = yaml.safe_load(f)
