@@ -10,7 +10,25 @@ from asgiref.wsgi import WsgiToAsgi
 from base import *
 from zoo import *
 from runtime import *
-from middleware import exception_handler
+
+import traceback
+from functools import wraps
+
+def exception_handler(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        try:
+            return f(*args, **kwargs)
+        except Exception as e:
+            error_message = str(e)
+            stack_trace = traceback.format_exc()
+            print(f"Error: {error_message}\n{stack_trace}")
+            return jsonify({
+                'success': False,
+                'error': error_message,
+                'stack_trace': stack_trace
+            }), 500
+    return decorated_function
 
 @dataclass
 class ModelLaunchInfo:
