@@ -80,6 +80,7 @@ Models are data objects representing LLMs. They have attributes such as:
 Runtimes are responsible for serving models. They include:
 
 1. **LlamaRuntime**: For serving llama.cpp models.
+   - Compatible model formats: gguf
    - Parameters:
      - `name` (str): Name of the runtime
      - `bin_path` (str): Path to the llama.cpp server binary
@@ -92,6 +93,7 @@ Runtimes are responsible for serving models. They include:
      ```
 
 2. **LiteLLMRuntime**: For serving models via LiteLLM.
+   - Compatible model formats: All formats supported by LiteLLM (including OpenAI, Azure, Anthropic, and various open-source models)
    - Parameters:
      - `name` (str): Name of the runtime
      - `bin_path` (str, optional): Path to the LiteLLM binary (default: "litellm")
@@ -104,6 +106,7 @@ Runtimes are responsible for serving models. They include:
      ```
 
 3. **KoboldCppRuntime**: For serving models using KoboldCpp.
+   - Compatible model formats: gguf, gptq, safetensors
    - Parameters:
      - `name` (str): Name of the runtime
      - `bin_path` (str): Path to the KoboldCpp binary
@@ -116,6 +119,7 @@ Runtimes are responsible for serving models. They include:
      ```
 
 4. **TabbyRuntime**: For serving models using TabbyAPI.
+   - Compatible model formats: gguf, ggml, safetensors
    - Parameters:
      - `name` (str): Name of the runtime
      - `script_path` (str): Path to the TabbyAPI start.sh script
@@ -127,7 +131,7 @@ Runtimes are responsible for serving models. They include:
          script_path: /path/to/tabby_api/start.sh
      ```
 
-Each runtime defines compatible model formats and configurable parameters. When launching a model, you can specify additional runtime-specific parameters as needed.
+Each runtime defines compatible model formats and configurable parameters. When launching a model, you can specify additional runtime-specific parameters as needed. The choice of runtime depends on the model format and the specific features required for your use case.
 
 ### Environments
 
