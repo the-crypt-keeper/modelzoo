@@ -186,7 +186,7 @@ runtimes:
    - name: LlamaRuntime
      class: LlamaRuntime
      params:
-       bin_path: /home/mike/work/llama-rpc/bin/llama-server
+       bin_path: /home/mike/work/llama.cpp/llama-server
        
 envs:
    - name: "P40/0"
