@@ -79,12 +79,55 @@ Models are data objects representing LLMs. They have attributes such as:
 
 Runtimes are responsible for serving models. They include:
 
-- **LlamaRuntime**: For serving llama.cpp models.
-- **LiteLLMRuntime**: For serving models via LiteLLM.
-- **KoboldCppRuntime**: For serving models using KoboldCpp.
-- **TabbyRuntime**: For serving models using TabbyAPI.
+1. **LlamaRuntime**: For serving llama.cpp models.
+   - Parameters:
+     - `name` (str): Name of the runtime
+     - `bin_path` (str): Path to the llama.cpp server binary
+   - Example:
+     ```yaml
+     - name: LlamaRuntime
+       class: LlamaRuntime
+       params:
+         bin_path: /path/to/llama-server
+     ```
 
-Each runtime defines compatible model formats and configurable parameters.
+2. **LiteLLMRuntime**: For serving models via LiteLLM.
+   - Parameters:
+     - `name` (str): Name of the runtime
+     - `bin_path` (str, optional): Path to the LiteLLM binary (default: "litellm")
+   - Example:
+     ```yaml
+     - name: LiteLLMRuntime
+       class: LiteLLMRuntime
+       params:
+         bin_path: litellm
+     ```
+
+3. **KoboldCppRuntime**: For serving models using KoboldCpp.
+   - Parameters:
+     - `name` (str): Name of the runtime
+     - `bin_path` (str): Path to the KoboldCpp binary
+   - Example:
+     ```yaml
+     - name: KoboldCppRuntime
+       class: KoboldCppRuntime
+       params:
+         bin_path: /path/to/koboldcpp
+     ```
+
+4. **TabbyRuntime**: For serving models using TabbyAPI.
+   - Parameters:
+     - `name` (str): Name of the runtime
+     - `script_path` (str): Path to the TabbyAPI script
+   - Example:
+     ```yaml
+     - name: TabbyRuntime
+       class: TabbyRuntime
+       params:
+         script_path: /path/to/tabby_api.py
+     ```
+
+Each runtime defines compatible model formats and configurable parameters. When launching a model, you can specify additional runtime-specific parameters as needed.
 
 ### Environments
 
