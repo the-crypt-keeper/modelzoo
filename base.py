@@ -178,13 +178,14 @@ class RunningModel:
         """
         return list(self.log_buffer)
 
-    def stop(self) -> None:
+    def stop(self, no_wait = False) -> None:
         """Stop the running model server and all its child processes."""
         if self.process:
             self._running = False
             try:
                 os.killpg(self._pgid, signal.SIGTERM)
-                self.process.wait(timeout=5)  # Wait up to 5 seconds
+                if not no_wait:
+                    self.process.wait(timeout=5)  # Wait up to 5 seconds
             except subprocess.TimeoutExpired:
                 print('Attempting to force kill..')
                 os.killpg(self._pgid, signal.SIGKILL)  # Force kill if not terminated
@@ -194,7 +195,8 @@ class RunningModel:
             self._pgid = None
 
         if self._log_thread:
-            self._log_thread.join(timeout=1)
+            if not no_wait:
+                self._log_thread.join(timeout=1)
             self._log_thread = None
 
     def __str__(self) -> str:

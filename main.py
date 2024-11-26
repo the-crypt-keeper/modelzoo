@@ -33,6 +33,4 @@ if __name__ == '__main__':
     try:
         http_server.serve_forever()
     except KeyboardInterrupt:
-        print("Keyboard interrupt received. Shutting down gracefully...")
-        keeper.shutdown()
-        http_server.stop()
+        print("Keyboard interrupt received.")

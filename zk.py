@@ -118,7 +118,7 @@ class ZooKeeper:
         print("Stopping all running models...")
         for model in self.running_models:
             try:
-                model.stop()
+                model.stop(no_wait=True)
                 print(f"Stopped model: {model.model.model_name}")
             except Exception as e:
                 print(f"Error stopping model {model.model.model_name}: {str(e)}")
