@@ -134,4 +134,14 @@ envs:
 4. Run the ZooKeeper application.
 5. Access the web interface to start managing your models.
 
+## Running the Application
+
+To run the ModelZoo application, use the following command:
+
+```
+python ./main.py --config config.yaml
+```
+
+Replace `config.yaml` with the path to your configuration file if it's different.
+
 For more detailed information, refer to the source code and comments in `base.py`, `zk.py`, and other module files.
