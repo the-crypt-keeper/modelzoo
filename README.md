@@ -10,9 +10,9 @@ ModelZoo is composed of several key components:
 2. **Models**: Data objects representing LLMs.
 3. **Runtimes**: Backends that can serve models in specific environments.
 4. **Environments**: GPU Configurations (environment variables) for running models.
-5. **ZooKeeper**: The main application that manages zoos, runtimes, and provides a web-based user interface.
-6. **Proxy**: A component that forwards requests to the appropriate running model, allowing unified access to all launched models.
-7. **ModelHistory**: Keeps track of model launch history, including frequency of use and last used configurations.
+5. **Proxy**: A component that forwards requests to the appropriate running model, allowing unified access to all launched models.
+6. **ModelHistory**: Keeps track of model launch history, including frequency of use and last used configurations.
+7. **ZooKeeper**: Web application to interact with zoos, use runtimes to spawn models, interface with history and host the proxy.
 
 ## Key Components
 
@@ -139,6 +139,16 @@ Each runtime defines compatible model formats and configurable parameters. When 
 ### Environments
 
 Environments are configurations for running models, typically including environment variables like `CUDA_VISIBLE_DEVICES`.
+
+Example:
+
+```yaml
+   - name: "RTX3090"
+     vars:
+        CUDA_VISIBLE_DEVICES: 0
+```
+
+Multiple enviroments may be pre-defined in the configuration file.
 
 ### ZooKeeper
 
