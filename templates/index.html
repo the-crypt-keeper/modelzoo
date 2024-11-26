@@ -140,7 +140,7 @@
             <div class="radio-group-container">
                 <div id="zoo-select" class="radio-group">
                     {% for name, zoo in zoos.items() %}
-                    <input type="radio" name="zoo" id="zoo-{{ loop.index }}" value="{{ name }}" {% if loop.first %}checked{% endif %} onchange="updateModelTable()">
+                    <input type="radio" name="zoo" id="zoo-{{ loop.index }}" value="{{ name }}" onchange="updateModelTable()">
                     <label for="zoo-{{ loop.index }}">{{ name }}</label>
                     {% endfor %}
                 </div>
@@ -237,11 +237,27 @@
                     pollLogs(index);
                 }
             });
+            loadSelectedZoo();
             updateModelTable();
         });
 
+        function saveSelectedZoo(zooName) {
+            localStorage.setItem('selectedZoo', zooName);
+        }
+
+        function loadSelectedZoo() {
+            const savedZoo = localStorage.getItem('selectedZoo');
+            if (savedZoo && $(`input[name="zoo"][value="${savedZoo}"]`).length) {
+                $(`input[name="zoo"][value="${savedZoo}"]`).prop('checked', true);
+            } else {
+                // If no saved zoo or the saved zoo doesn't exist, select the first one
+                $('input[name="zoo"]:first').prop('checked', true);
+            }
+        }
+
         function updateModelTable() {
             const selectedZoo = $('input[name="zoo"]:checked').val();
+            saveSelectedZoo(selectedZoo);
             populateTable(zoos[selectedZoo].catalog);
         }
 
