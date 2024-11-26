@@ -133,18 +133,9 @@ envs:
    ```
    pip install -r requirements.txt
    ```
-3. Create a configuration YAML file.
-4. Run the ZooKeeper application.
-5. Access the web interface to start managing your models.
-
-## Running the Application
-
-To run the ModelZoo application, use the following command:
-
-```
-python ./main.py --config config.yaml
-```
-
-Replace `config.yaml` with the path to your configuration file if it's different.
-
-For more detailed information, refer to the source code and comments in `base.py`, `zk.py`, and other module files.
+3. Create a `config.yaml` YAML file.
+4. Run the ZooKeeper application:
+   ```
+   python ./main.py --config config.yaml
+   ```
+5. Access the web interface (listening at http://0.0.0.0:3333/ by default) to start managing your models!
