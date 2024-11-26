@@ -118,13 +118,13 @@ Runtimes are responsible for serving models. They include:
 4. **TabbyRuntime**: For serving models using TabbyAPI.
    - Parameters:
      - `name` (str): Name of the runtime
-     - `script_path` (str): Path to the TabbyAPI script
+     - `script_path` (str): Path to the TabbyAPI start.sh script
    - Example:
      ```yaml
      - name: TabbyRuntime
        class: TabbyRuntime
        params:
-         script_path: /path/to/tabby_api.py
+         script_path: /path/to/tabby_api/start.sh
      ```
 
 Each runtime defines compatible model formats and configurable parameters. When launching a model, you can specify additional runtime-specific parameters as needed.
