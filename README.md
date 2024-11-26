@@ -6,10 +6,10 @@ ModelZoo is a system for managing and serving local Large Language Models (LLMs)
 
 ModelZoo is composed of several key components:
 
-1. **Zoos**: Factories that discover and catalog models.
+1. **Zoos**: Discovery systems that catalog models.
 2. **Models**: Data objects representing LLMs.
 3. **Runtimes**: Backends that can serve models in specific environments.
-4. **Environments**: Configurations for running models.
+4. **Environments**: GPU Configurations (enviroment variables) for running models.
 5. **ZooKeeper**: The main application that manages zoos, runtimes, and provides a web-based user interface.
 
 ## Key Components
