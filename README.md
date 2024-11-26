@@ -129,7 +129,10 @@ envs:
 ## Getting Started
 
 1. Clone the repository.
-2. Install dependencies.
+2. Install dependencies:
+   ```
+   pip install -r requirements.txt
+   ```
 3. Create a configuration YAML file.
 4. Run the ZooKeeper application.
 5. Access the web interface to start managing your models.
