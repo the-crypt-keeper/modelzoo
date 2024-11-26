@@ -184,14 +184,15 @@ zoos:
 
 runtimes:
    - name: LlamaRuntime
+     class: LlamaRuntime
      params:
-       bin: /home/mike/work/llama-rpc/bin/llama-server
+       bin_path: /home/mike/work/llama-rpc/bin/llama-server
        
 envs:
-   - name: "P40[0]"
+   - name: "P40/0"
      vars:
         CUDA_VISIBLE_DEVICES: 0
-   - name: "P40[0,1]"
+   - name: "P40/0+1"
      vars:
         CUDA_VISIBLE_DEVICES: 0,1
    - name: "No GPU"
