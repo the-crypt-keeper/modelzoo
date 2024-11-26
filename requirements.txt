@@ -1,0 +1,5 @@
+gevent==24.11.1
+Flask==3.0.0
+asgiref==3.8.1
+litellm==1.47.0
+requests==2.32.3
