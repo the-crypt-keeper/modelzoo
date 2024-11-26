@@ -4,6 +4,7 @@ from typing import Any, List, Dict
 import json
 import shutil
 import requests
+import os
 
 class StaticZoo(Zoo):
     """Zoo implementation that returns a static list of Models."""
@@ -169,19 +170,30 @@ class FolderZoo(Zoo):
 class OpenAIZoo(Zoo):
     """Zoo implementation that fetches models from an OpenAI-compatible API."""
 
-    def __init__(self, name: str, api_url: str, api_key: str, cache: bool = True, models: List[str] = None):
+    def __init__(self, name: str, api_url: str, api_key: str = None, api_key_env: str = None, cache: bool = True, models: List[str] = None):
         """Initialize an OpenAIZoo with API details.
         
         Args:
             name (str): Name of the zoo
             api_url (str): Base URL of the OpenAI-compatible API
-            api_key (str): API key for authentication
+            api_key (str, optional): API key for authentication
+            api_key_env (str, optional): Environment variable name containing the API key
             cache (bool): Whether to cache the model list (default: True)
             models (List[str]): Optional list of models to override API exploration
         """
         super().__init__(name)
         self.api_url = api_url.rstrip('/')
-        self.api_key = api_key
+        
+        if api_key_env:
+            self.api_key = os.environ.get(api_key_env)
+            if not self.api_key:
+                raise ValueError(f"Environment variable '{api_key_env}' not found or empty")
+        else:
+            self.api_key = api_key
+        
+        if not self.api_key:
+            raise ValueError("API key must be provided either directly or through an environment variable")
+        
         self.cache = cache
         self._cached_models = None
         self.models = models
