@@ -271,7 +271,8 @@ class ZooKeeper:
                 remote_models.append({
                     'host': peer['host'],
                     'port': peer['port'],
-                    'models': peer_models
+                    'models': peer_models,
+                    'error': None
                 })
                     
             except Exception as e:
@@ -281,7 +282,7 @@ class ZooKeeper:
                     'host': peer['host'],
                     'port': peer['port'],
                     'error': str(e),
-                    'models': []]
+                    'models': []
                 })                
         return remote_models
 
