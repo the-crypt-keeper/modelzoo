@@ -14,11 +14,87 @@ ModelZoo is composed of several key components:
 6. **ModelHistory**: Keeps track of model launch history, including frequency of use and last used configurations.
 7. **ZooKeeper**: Web application to interact with zoos, use runtimes to spawn models, interface with history and host the proxy.
 
-## Key Components
+## Getting Started
+
+1. Clone the repository.
+2. Install dependencies:
+   ```
+   pip install -r requirements.txt
+   ```
+3. Create a `config.yaml` YAML file.
+4. Run the ZooKeeper application:
+   ```
+   python ./main.py --config config.yaml
+   ```
+5. Access the web interface (listening at http://0.0.0.0:3333/ by default) to:
+   - View available models.
+   - Launch models with specific configurations.
+   - Manage running models (view logs, stop).
+
+## ZooKeeper
+
+ZooKeeper is the main entry-point of ModelZoo. It's a flask application that:
+
+1. Loads configuration from a YAML file.
+2. Instantiates zoos and runtimes.
+3. Provides a web-based user interface for:
+   - Listing available models from all zoos.
+   - Launching models with specific runtimes and configurations.
+   - Managing running models (viewing logs, stopping models).
+4. Includes a proxy server (`proxy.py`) that forwards requests to the appropriate running model, allowing unified access to all launched models.
+5. Keeps track of model launch history
+   - Number of times a model has been launched, and the last launch time (to sort models by most frequently used)
+   - Last used enviroment and parameters (provides a better user experience by pre-filling launch configurations based on previous usage)
+6. Connects to instances of itself on other nodes to create distributed setups.
+
+## Configuration
+
+ModelZoo (in practice, ZooKeeper) is configured using a YAML file that defines:
+
+- Zoos to be instantiated and their configurations.
+- Runtimes to be made available.
+- Predefined environments.
+- Remote peers for distributed model management.
+
+### Example Configuation
+
+```yaml
+zoos:
+   - name: SSD
+     class: FolderZoo
+     params:
+        path: /mnt/ssd0
+
+runtimes:
+   - name: LlamaRuntime
+     class: LlamaRuntime
+     params:
+       bin_path: /home/mike/work/llama.cpp/llama-server
+       
+envs:
+   - name: "P40/0"
+     vars:
+        CUDA_VISIBLE_DEVICES: 0
+   - name: "P40/0+1"
+     vars:
+        CUDA_VISIBLE_DEVICES: 0,1
+   - name: "No GPU"
+     vars: {}        
+
+peers:
+   - host: another-host
+     port: 3333
+```
+
+This example assumes you have some `*.gguf` files under /mnt/ssd0 and that you have a compiled llama.cpp server binary at the specified path and that you have a second instance of ModelZoo running on `another-host`.
 
 ### Zoos
 
-Zoos are responsible for discovering and cataloging models. The system supports different types of zoos:
+Zoos are responsible for discovering and cataloging models.
+
+That the `name` field is optional and will default to `class` if not provided, but naming your Zoos is strongly encouraged.
+
+The system supports different types of zoos:
 
 1. **FolderZoo**: Discovers models in a specified file system folder.
    - Parameters:
@@ -67,19 +143,9 @@ Zoos are responsible for discovering and cataloging models. The system supports 
 
 Each zoo type is designed to accommodate different model discovery and management needs, allowing for flexibility in how models are sourced and cataloged within the ModelZoo system.
 
-### Models
-
-Models are data objects representing LLMs. They have attributes such as:
-
-- `model_id`: Unique identifier for the model.
-- `model_format`: Format of the model (e.g., "gguf", "gptq", "exl2").
-- `model_name`: Friendly display name.
-- `model_size`: Size of the model.
-- `model_architecture`: Architecture of the model.
-
 ### Runtimes
 
-Runtimes are responsible for serving models. They include:
+Runtimes are responsible for serving models.  The `name` field is optional, and will default to `class` if not provided.
 
 1. **LlamaRuntime**: For serving llama.cpp models.
    - Compatible model formats: gguf
@@ -150,86 +216,11 @@ Example:
 
 Multiple enviroments may be pre-defined in the configuration file.
 
-### ZooKeeper
+### Remote Models (Peers)
 
-ZooKeeper is the main application that:
-
-1. Loads configuration from a YAML file.
-2. Instantiates zoos and runtimes.
-3. Provides a web-based user interface for:
-   - Listing available models from all zoos.
-   - Launching models with specific runtimes and configurations.
-   - Managing running models (viewing logs, stopping models).
-4. Includes a proxy server (`proxy.py`) that forwards requests to the appropriate running model, allowing unified access to all launched models.
-5. Keeps track of model launch history
-   - Number of times a model has been launched, and the last launch time (to sort models by most frequently used)
-   - Last used enviroment and parameters (provides a better user experience by pre-filling launch configurations based on previous usage)
-
-## Configuration
-
-ModelZoo is configured using a YAML file that defines:
-
-- Zoos to be instantiated and their configurations.
-- Runtimes to be made available.
-- Predefined environments.
-- Remote peers for distributed model management.
-
-Example configuration:
-
-```yaml
-zoos:
-   - name: SSD
-     class: FolderZoo
-     params:
-        path: /mnt/ssd0
-
-runtimes:
-   - name: LlamaRuntime
-     class: LlamaRuntime
-     params:
-       bin_path: /home/mike/work/llama.cpp/llama-server
-       
-envs:
-   - name: "P40/0"
-     vars:
-        CUDA_VISIBLE_DEVICES: 0
-   - name: "P40/0+1"
-     vars:
-        CUDA_VISIBLE_DEVICES: 0,1
-   - name: "No GPU"
-     vars: {}        
-
-peers:
-   - host: 192.168.1.100
-     port: 3333
-   - host: 192.168.1.101
-     port: 3333
-```
-
-This example assumes you have some `*.gguf` files under /mnt/ssd0 and that you have a compiled llama.cpp server binary at the specified path.
-
-### Remote Models
-
-The new remote models feature allows you to connect multiple ModelZoo instances and view the running models on remote peers. To configure remote peers:
+The remote models feature allows you to connect multiple ModelZoo instances and view the running models on remote peers. To configure remote peers:
 
 1. Add a `peers` section to your configuration file.
 2. For each peer, specify the `host` and `port` where the remote ModelZoo instance is running.
 
 The web interface will display the status and running models of each configured peer, allowing you to manage a distributed setup of ModelZoo instances.
-
-## Getting Started
-
-1. Clone the repository.
-2. Install dependencies:
-   ```
-   pip install -r requirements.txt
-   ```
-3. Create a `config.yaml` YAML file.
-4. Run the ZooKeeper application:
-   ```
-   python ./main.py --config config.yaml
-   ```
-5. Access the web interface (listening at http://0.0.0.0:3333/ by default) to:
-   - View available models.
-   - Launch models with specific configurations.
-   - Manage running models (view logs, stop).
