@@ -172,6 +172,7 @@ ModelZoo is configured using a YAML file that defines:
 - Zoos to be instantiated and their configurations.
 - Runtimes to be made available.
 - Predefined environments.
+- Remote peers for distributed model management.
 
 Example configuration:
 
@@ -197,9 +198,24 @@ envs:
         CUDA_VISIBLE_DEVICES: 0,1
    - name: "No GPU"
      vars: {}        
+
+peers:
+   - host: 192.168.1.100
+     port: 3333
+   - host: 192.168.1.101
+     port: 3333
 ```
 
 This example assumes you have some `*.gguf` files under /mnt/ssd0 and that you have a compiled llama.cpp server binary at the specified path.
+
+### Remote Models
+
+The new remote models feature allows you to connect multiple ModelZoo instances and view the running models on remote peers. To configure remote peers:
+
+1. Add a `peers` section to your configuration file.
+2. For each peer, specify the `host` and `port` where the remote ModelZoo instance is running.
+
+The web interface will display the status and running models of each configured peer, allowing you to manage a distributed setup of ModelZoo instances.
 
 ## Getting Started
 
