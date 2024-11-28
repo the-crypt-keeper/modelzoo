@@ -14,8 +14,12 @@ class ProxyServer:
          self.app.route('/v1/chat/completions', methods=['POST'])(self.handle_chat_completions)
 
      def get_models(self):
-         models = [{"id": rmodel.model.model_name, "owned_by": "modelzoo"} for rmodel in self.zookeeper.get_running_models()]
-         return jsonify({"data": models})
+         local_models = [{"id": rmodel.model.model_name, "owned_by": "modelzoo"} for rmodel in self.zookeeper.get_running_models()]
+         remote_models = []
+         for peer in self.zookeeper.get_remote_models():
+             for model in peer['models']:
+                 remote_models.append({"id": model['model_name'], "owned_by": f"remote:{peer['host']}"})
+         return jsonify({"data": local_models + remote_models})
 
      def handle_completions(self):
          return self._handle_request('/v1/completions')

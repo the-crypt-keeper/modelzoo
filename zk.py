@@ -3,6 +3,7 @@ import yaml
 from flask import Flask, jsonify, request, render_template
 import random
 import json
+import requests
 from datetime import datetime
 from dataclasses import dataclass, asdict
 from asgiref.wsgi import WsgiToAsgi
@@ -100,6 +101,7 @@ class ZooKeeper:
         self.environments: Dict[str, Environment] = {}
         self.running_models: List[RunningModel] = []
         self.model_history = ModelHistory()
+        self.peers: List[Dict[str, str]] = []
         
         # Load configuration
         self.load_config(config_path)
@@ -155,6 +157,9 @@ class ZooKeeper:
             env = Environment(env_config['name'], env_config['vars'])
             self.environments[env_config['name']] = env
 
+        # Load peers
+        self.peers = config.get('peers', [])
+
     def setup_routes(self):
         self.app.route('/')(exception_handler(self.render_index))
         self.app.route('/api/model/launch', methods=['POST'])(exception_handler(self.handle_launch_model))
@@ -162,6 +167,7 @@ class ZooKeeper:
         self.app.route('/api/model/<int:model_idx>/logs')(exception_handler(self.handle_get_logs))
         self.app.route('/api/model/<int:model_idx>/status')(exception_handler(self.handle_get_status))
         self.app.route('/api/running_models')(exception_handler(self.handle_get_running_models))
+        self.app.route('/api/remote_models')(exception_handler(self.handle_get_remote_models))
 
     def handle_get_status(self, model_idx):
         if 0 <= model_idx < len(self.running_models):
@@ -250,6 +256,28 @@ class ZooKeeper:
                 'listener': model.listener.__dict__
             })
         return jsonify({'running_models': running_models})
+
+    def get_remote_models(self):
+        remote_models = []
+        for peer in self.peers:
+            try:
+                response = requests.get(f"http://{peer['host']}:{peer['port']}/api/running_models", timeout=5)
+                if response.status_code == 200:
+                    peer_models = response.json().get('running_models', [])
+                    for model in peer_models:
+                        model['listener']['host'] = peer['host']  # Replace with the peer's host
+                    remote_models.append({
+                        'host': peer['host'],
+                        'port': peer['port'],
+                        'models': peer_models
+                    })
+            except requests.RequestException as e:
+                print(f"Error fetching models from peer {peer['host']}:{peer['port']}: {str(e)}")
+        return remote_models
+
+    def handle_get_remote_models(self):
+        remote_models = self.get_remote_models()
+        return jsonify({'remote_models': remote_models})
 
     def get_running_models(self):
         return [model for model in self.running_models if model.status()['ready']]
