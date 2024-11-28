@@ -232,6 +232,9 @@
             <h2>
                 <span class="status-indicator {{ 'status-ready' if peer.error is none else 'status-stopped' }}"></span>
                 Remote Models: {{ peer.host }}
+                {% if peer.error is none %}
+                    <button onclick="window.open('http://{{ peer.host }}:{{ peer.port }}/', '_blank')">Manage</button>
+                {% endif %}
             </h2>
             {% if peer.error is none %}
                 {% for model in peer.models %}
