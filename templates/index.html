@@ -224,7 +224,18 @@
         
         <div class="remote-models-list">
             <h2>Remote Models</h2>
-            <div id="remote-models-container"></div>
+            {% for peer in remote_models %}
+            <div class="remote-peer">
+                <h3>Remote Models: {{ peer.host }}</h3>
+                {% for model in peer.models %}
+                <div class="remote-model">
+                    <h4>{{ model.model_name }}</h4>
+                    <p>Status: {{ 'Ready' if model.status.ready else 'Starting' }}</p>
+                    <p>Listener: {{ model.listener.host }}:{{ model.listener.port }}</p>
+                </div>
+                {% endfor %}
+            </div>
+            {% endfor %}
         </div>
     </div>
 
@@ -244,27 +255,7 @@
             });
             loadSelectedZoo();
             updateModelTable();
-            fetchRemoteModels();
         });
-
-        function fetchRemoteModels() {
-            $.get('/api/remote_models', function(data) {
-                const container = $('#remote-models-container');
-                container.empty();
-                data.remote_models.forEach(peer => {
-                    const peerDiv = $('<div>').addClass('remote-peer');
-                    peerDiv.append($('<h3>').text(`Remote Models: ${peer.host}`));
-                    peer.models.forEach(model => {
-                        const modelDiv = $('<div>').addClass('remote-model');
-                        modelDiv.append($('<h4>').text(model.model_name));
-                        modelDiv.append($('<p>').text(`Status: ${model.status.ready ? 'Ready' : 'Starting'}`));
-                        modelDiv.append($('<p>').text(`Listener: ${model.listener.host}:${model.listener.port}`));
-                        peerDiv.append(modelDiv);
-                    });
-                    container.append(peerDiv);
-                });
-            });
-        }
 
         function saveSelectedZoo(zooName) {
             localStorage.setItem('selectedZoo', zooName);

@@ -167,7 +167,6 @@ class ZooKeeper:
         self.app.route('/api/model/<int:model_idx>/logs')(exception_handler(self.handle_get_logs))
         self.app.route('/api/model/<int:model_idx>/status')(exception_handler(self.handle_get_status))
         self.app.route('/api/running_models')(exception_handler(self.handle_get_running_models))
-        self.app.route('/api/remote_models')(exception_handler(self.handle_get_remote_models))
 
     def handle_get_status(self, model_idx):
         if 0 <= model_idx < len(self.running_models):
@@ -194,7 +193,8 @@ class ZooKeeper:
             environments=self.environments,
             random_port=self.get_random_port(),
             model_launch_info=model_launch_info,
-            hostname=socket.gethostname()
+            hostname=socket.gethostname(),
+            remote_models=self.get_remote_models()
         )
 
     def handle_launch_model(self):
@@ -274,10 +274,6 @@ class ZooKeeper:
             except requests.RequestException as e:
                 print(f"Error fetching models from peer {peer['host']}:{peer['port']}: {str(e)}")
         return remote_models
-
-    def handle_get_remote_models(self):
-        remote_models = self.get_remote_models()
-        return jsonify({'remote_models': remote_models})
 
     def get_running_models(self):
         return [model for model in self.running_models if model.status()['ready']]
