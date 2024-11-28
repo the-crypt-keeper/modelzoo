@@ -96,7 +96,6 @@ The system supports different types of zoos:
 
 1. **FolderZoo**: Discovers models in a specified file system folder.
    - Parameters:
-     - `name` (str): Name of the zoo
      - `path` (str): Path to folder containing models
    - Example:
      ```yaml
@@ -108,7 +107,6 @@ The system supports different types of zoos:
 
 2. **StaticZoo**: Returns a predefined list of models.
    - Parameters:
-     - `name` (str): Name of the zoo
      - `models` (List[Dict]): List of model dictionaries
    - Example:
      ```yaml
@@ -123,7 +121,6 @@ The system supports different types of zoos:
 
 3. **OpenAIZoo**: Fetches models from an OpenAI-compatible API.
    - Parameters:
-     - `name` (str): Name of the zoo
      - `api_url` (str): Base URL of the OpenAI-compatible API
      - `api_key` (str, optional): API key for authentication
      - `api_key_env` (str, optional): Environment variable name containing the API key
@@ -148,7 +145,6 @@ Runtimes are responsible for serving models.  The `name` field is optional, and 
 1. **LlamaRuntime**: For serving llama.cpp models.
    - Compatible model formats: gguf
    - Parameters:
-     - `name` (str): Name of the runtime
      - `bin_path` (str): Path to the llama.cpp server binary
    - Example:
      ```yaml
@@ -162,7 +158,6 @@ Runtimes are responsible for serving models.  The `name` field is optional, and 
    - Compatible model formats: litellm
       - All formats supported by LiteLLM (including OpenAI, Azure, Anthropic, and various open-source models)
    - Parameters:
-     - `name` (str): Name of the runtime
      - `bin_path` (str, optional): Path to the LiteLLM binary (default: "litellm")
    - Example:
      ```yaml
@@ -175,7 +170,6 @@ Runtimes are responsible for serving models.  The `name` field is optional, and 
 3. **KoboldCppRuntime**: For serving models using KoboldCpp.
    - Compatible model formats: gguf
    - Parameters:
-     - `name` (str): Name of the runtime
      - `bin_path` (str): Path to the KoboldCpp binary
    - Example:
      ```yaml
@@ -188,7 +182,6 @@ Runtimes are responsible for serving models.  The `name` field is optional, and 
 4. **TabbyRuntime**: For serving models using TabbyAPI.
    - Compatible model formats: gptq, exl2
    - Parameters:
-     - `name` (str): Name of the runtime
      - `script_path` (str): Path to the TabbyAPI start.sh script
    - Example:
      ```yaml
