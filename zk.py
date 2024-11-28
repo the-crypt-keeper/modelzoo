@@ -262,17 +262,27 @@ class ZooKeeper:
         for peer in self.peers:
             try:
                 response = requests.get(f"http://{peer['host']}:{peer['port']}/api/running_models", timeout=5)
-                if response.status_code == 200:
-                    peer_models = response.json().get('running_models', [])
-                    for model in peer_models:
-                        model['listener']['host'] = peer['host']  # Replace with the peer's host
-                    remote_models.append({
-                        'host': peer['host'],
-                        'port': peer['port'],
-                        'models': peer_models
-                    })
-            except requests.RequestException as e:
+                response.raise_for_status()
+                
+                peer_models = response.json().get('running_models', [])
+                for model in peer_models:
+                    model['listener']['host'] = peer['host']  # Replace with the peer's host
+                    
+                remote_models.append({
+                    'host': peer['host'],
+                    'port': peer['port'],
+                    'models': peer_models
+                })
+                    
+            except Exception as e:
                 print(f"Error fetching models from peer {peer['host']}:{peer['port']}: {str(e)}")
+                
+                remote_models.append({
+                    'host': peer['host'],
+                    'port': peer['port'],
+                    'error': str(e),
+                    'models': []]
+                })                
         return remote_models
 
     def get_running_models(self):

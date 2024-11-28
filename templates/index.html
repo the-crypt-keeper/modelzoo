@@ -222,22 +222,19 @@
             {% endfor %}
         </div>
         
-        <div class="remote-models-list">
-            <h2>Remote Models</h2>
-            {% for peer in remote_models %}
-            <div class="remote-peer">
-                <h3>Remote Models: {{ peer.host }}</h3>
-                {% for model in peer.models %}
-                <div class="remote-model">
-                    <h4>{{ model.model_name }}</h4>
-                    <p>Status: {{ 'Ready' if model.status.ready else 'Starting' }}</p>
-                    <p>Listener: {{ model.listener.host }}:{{ model.listener.port }}</p>
-                </div>
-                {% endfor %}
+        {% for peer in remote_models %}
+        <div class="running-list remote-peer">
+            <h2>Remote Models: {{ peer.host }}</h2>
+            {% for model in peer.models %}
+            <div class="running-model remote-model">
+                <h4>{{ model.model_name }}</h4>
+                <p>Status: {{ 'Ready' if model.status.ready else 'Starting' }}</p>
+                <p>Listener: {{ model.listener.host }}:{{ model.listener.port }}</p>
             </div>
             {% endfor %}
         </div>
-    </div>
+        {% endfor %}
+
 
     <script>
         const runtimes = {{ runtimes | tojson | safe }};
