@@ -10,9 +10,9 @@ ModelZoo is composed of several key components:
 2. **Models**: Data objects representing LLMs.
 3. **Runtimes**: Backends that can serve models in specific environments.
 4. **Environments**: GPU Configurations (environment variables) for running models.
-5. **Proxy**: A component that forwards requests to the appropriate running model, allowing unified access to all launched models.
-6. **ModelHistory**: Keeps track of model launch history, including frequency of use and last used configurations.
-7. **ZooKeeper**: Web application to interact with zoos, use runtimes to spawn models, interface with history and host the proxy.
+5. **ZooKeeper**: Web application to interact with zoos, use runtimes to spawn models, interface with history and host the proxy.
+6. **Proxy**: A ZooKeeper component that forwards requests to the appropriate running model, allowing unified access to all launched models.
+7. **ModelHistory**: A ZooKeeper component that tracks model launch history, including frequency of use and last used configurations.
 
 ## Getting Started
 
@@ -26,10 +26,7 @@ ModelZoo is composed of several key components:
    ```
    python ./main.py --config config.yaml
    ```
-5. Access the web interface (listening at http://0.0.0.0:3333/ by default) to:
-   - View available models.
-   - Launch models with specific configurations.
-   - Manage running models (view logs, stop).
+5. Open the ZooKeeper web interface (listening at http://0.0.0.0:3333/ by default) to view, launch and manage models.
 
 ## ZooKeeper
 
