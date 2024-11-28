@@ -270,12 +270,15 @@
             updateModelTable();
         });
 
+        const hostname = '{{ hostname }}';
+        const storageKey = `selectedZoo_${hostname}`;
+
         function saveSelectedZoo(zooName) {
-            localStorage.setItem('selectedZoo', zooName);
+            localStorage.setItem(storageKey, zooName);
         }
 
         function loadSelectedZoo() {
-            const savedZoo = localStorage.getItem('selectedZoo');
+            const savedZoo = localStorage.getItem(storageKey);
             if (savedZoo && $(`input[name="zoo"][value="${savedZoo}"]`).length) {
                 $(`input[name="zoo"][value="${savedZoo}"]`).prop('checked', true);
             } else {
