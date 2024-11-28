@@ -133,7 +133,7 @@ class ZooKeeper:
         for zoo_config in config.get('zoos', []):
             try:
                 zoo_class = eval(zoo_config['class'])
-                zoo = zoo_class(name=zoo_config['name'], **zoo_config['params'])
+                zoo = zoo_class(name=zoo_config.get('name',zoo_config['class']), **zoo_config['params'])
                 self.zoos[zoo_config['name']] = zoo
             except Exception as e:
                 print(f"Error creating zoo '{zoo_config['name']}' of class '{zoo_config['class']}': {str(e)}")
@@ -143,7 +143,7 @@ class ZooKeeper:
         for runtime_config in config.get('runtimes', []):
             try:
                 runtime_class = eval(runtime_config['class'])
-                runtime = runtime_class(name=runtime_config['name'], **runtime_config['params'])
+                runtime = runtime_class(name=runtime_config.get('name',runtime_config['class']), **runtime_config['params'])
                 self.runtimes[runtime_config['name']] = runtime
             except Exception as e:
                 print(f"Error creating runtime '{runtime_config['name']}' of class '{runtime_config['class']}': {str(e)}")
