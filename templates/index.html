@@ -130,6 +130,11 @@
         .chevron {
             font-size: 12px;
         }
+        .error-message {
+            color: red;
+            margin-top: 5px;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
@@ -224,14 +229,21 @@
         
         {% for peer in remote_models %}
         <div class="running-list remote-peer">
-            <h2>Remote Models: {{ peer.host }}</h2>
-            {% for model in peer.models %}
-            <div class="running-model remote-model">
-                <h4>{{ model.model_name }}</h4>
-                <p>Status: {{ 'Ready' if model.status.ready else 'Starting' }}</p>
-                <p>Listener: {{ model.listener.host }}:{{ model.listener.port }}</p>
-            </div>
-            {% endfor %}
+            <h2>
+                <span class="status-indicator {{ 'status-ready' if peer.error is none else 'status-stopped' }}"></span>
+                Remote Models: {{ peer.host }}
+            </h2>
+            {% if peer.error is none %}
+                {% for model in peer.models %}
+                <div class="running-model remote-model">
+                    <h4>{{ model.model_name }}</h4>
+                    <p>Status: {{ 'Ready' if model.status.ready else 'Starting' }}</p>
+                    <p>Listener: {{ model.listener.host }}:{{ model.listener.port }}</p>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p class="error-message">Error: {{ peer.error }}</p>
+            {% endif %}
         </div>
         {% endfor %}
 
