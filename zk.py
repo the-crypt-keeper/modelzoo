@@ -248,12 +248,13 @@ class ZooKeeper:
 
     def handle_get_running_models(self):
         running_models = []
-        for model in self.running_models:
+        for rmodel in self.running_models:
+            model = rmodel.model
             running_models.append({
                 'model_name': model.model_name,
                 'model_id': model.model_id,
-                'status': model.status(),
-                'listener': model.listener.__dict__
+                'status': rmodel.status(),
+                'listener': rmodel.listener.__dict__
             })
         return jsonify({'running_models': running_models})
 
