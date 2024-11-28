@@ -8,13 +8,17 @@ from zk import ZooKeeper
 from proxy import ProxyServer
 
 parser = argparse.ArgumentParser(description='ModelZoo Server')
-parser.add_argument('--config', required=True, help='Path to config file')
+parser.add_argument('--config', default='config.yaml', help='Path to config file')
 parser.add_argument('--host', default='0.0.0.0', help='Host to bind to')
 parser.add_argument('--port', type=int, default=3333, help='Port to bind to')
 
 args = parser.parse_args()
 
-keeper = ZooKeeper(args.config)
+try:
+    keeper = ZooKeeper(args.config)
+except Exception as e:
+    print(f"Error loading configuration from {args.config}: {str(e)}")
+    exit(1)
 proxy = ProxyServer(keeper)
 
 app = keeper.app
