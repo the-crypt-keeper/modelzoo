@@ -6,14 +6,14 @@ ModelZoo is a system for managing and serving local Large Language Models (LLMs)
 
 ModelZoo is composed of several key components:
 
-1. **Zoos**: Discovery systems that catalog models.
+1. **[Zoos](#zoos)**: Discovery systems that catalog models.
 2. **Models**: Data objects representing LLMs.
-3. **Runtimes**: Backends that can serve models in specific environments.
-4. **Environments**: GPU Configurations (environment variables) for running models.
+3. **[Runtimes](#runtimes)**: Backends that can serve models in specific environments.
+4. **[Environments](#environments)**: GPU Configurations (environment variables) for running models.
 5. **ZooKeeper**: Web application to interact with zoos, use runtimes to spawn models, interface with history and host the proxy.
 6. **Proxy**: A ZooKeeper component that forwards requests to the appropriate running model, allowing unified access to all launched models.
 7. **ModelHistory**: A ZooKeeper component that tracks model launch history, including frequency of use and last used configurations.
-8. **Peers**: Instances of ZooKeeper running on other hosts.
+8. **[Peers](#remote-models-peers)**: Instances of ZooKeeper running on other hosts.
 
 ## Getting Started
 
