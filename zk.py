@@ -241,14 +241,15 @@ class ZooKeeper:
         return jsonify({'success': False, 'error': 'Model not found'}), 404
 
     def handle_get_running_models(self):
-        ready_models = []
-        for model in self.get_running_models():
-            ready_models.append({
+        running_models = []
+        for model in self.running_models:
+            running_models.append({
                 'model_name': model.model_name,
                 'model_id': model.model_id,
+                'status': model.status(),
                 'listener': model.listener.__dict__
             })
-        return jsonify({'running_models': ready_models})
+        return jsonify({'running_models': running_models})
 
     def get_running_models(self):
         return [model for model in self.running_models if model.status()['ready']]
