@@ -6,6 +6,7 @@ import json
 from datetime import datetime
 from dataclasses import dataclass, asdict
 from asgiref.wsgi import WsgiToAsgi
+import socket
 
 from base import *
 from zoo import *
@@ -186,7 +187,8 @@ class ZooKeeper:
             runtimes={name: {**runtime.__dict__} for name, runtime in self.runtimes.items()},
             environments=self.environments,
             random_port=self.get_random_port(),
-            model_launch_info=model_launch_info
+            model_launch_info=model_launch_info,
+            hostname=socket.gethostname()
         )
 
     def handle_launch_model(self):
