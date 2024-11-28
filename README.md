@@ -221,4 +221,12 @@ The remote models feature allows you to connect multiple ModelZoo instances and 
 1. Add a `peers` section to your configuration file.
 2. For each peer, specify the `host` and `port` where the remote ModelZoo instance is running.
 
+Example:
+
+```yaml
+peers:
+  - host: falcon
+    port: 3333
+```
+
 The web interface will display the status and running models of each configured peer, allowing you to manage a distributed setup of ModelZoo instances.
