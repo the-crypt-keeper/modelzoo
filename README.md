@@ -13,6 +13,7 @@ ModelZoo is composed of several key components:
 5. **ZooKeeper**: Web application to interact with zoos, use runtimes to spawn models, interface with history and host the proxy.
 6. **Proxy**: A ZooKeeper component that forwards requests to the appropriate running model, allowing unified access to all launched models.
 7. **ModelHistory**: A ZooKeeper component that tracks model launch history, including frequency of use and last used configurations.
+8. **Peers**: Instances of ZooKeeper running on other hosts.
 
 ## Getting Started
 
