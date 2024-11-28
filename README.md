@@ -207,6 +207,7 @@ Environments are configurations for running models, typically including environm
 Example:
 
 ```yaml
+envs:
    - name: "RTX3090"
      vars:
         CUDA_VISIBLE_DEVICES: 0
