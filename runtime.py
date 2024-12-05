@@ -167,12 +167,16 @@ class LlamaSrbRuntime(Runtime):
             "--n", str(param_list.get("batch_size", 4))
         ]
 
+        # Get the directory containing the script
+        working_dir = os.path.dirname(os.path.abspath(self.script_path))
+
         return RunningModel(
             runtime=self,
             model=model,
             environment=environment,
             listener=listener,
-            command=cmd
+            command=cmd,
+            working_directory=working_dir
         )
 
 class LiteLLMRuntime(Runtime):
