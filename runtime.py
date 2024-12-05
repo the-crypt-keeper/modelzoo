@@ -126,15 +126,17 @@ class LlamaSrbRuntime(Runtime):
         self.runtime_params = [
             RuntimeParameter(
                 param_name="ctx",
-                param_description="Context size",
+                param_description="Total Context size",
                 param_type="enum",
-                param_default="4K",
+                param_default="8K",
                 param_enum={
                     "4K": 4096,
                     "6K": 6144,
                     "8K": 8192,
-                    "16K": 16384,
-                    "32K": 32768
+                    "12K": 12*1024,
+                    "16K": 16*1024,
+                    "24K": 24*1024,
+                    "32K": 32*1024
                 }
             ),
             RuntimeParameter(
@@ -150,26 +152,13 @@ class LlamaSrbRuntime(Runtime):
               listener: Listener, 
               model: Model, 
               param_list: dict[str, Any]) -> RunningModel:
-        """Spawn a llama-srb API server instance.
-        
-        Args:
-            environment (Environment): Environment configuration
-            listener (Listener): Network binding configuration
-            model (Model): Model to serve
-            param_list (Dict[str, Any]): Runtime parameters
 
-        Returns:
-            RunningModel: Handle to the running instance
-        
-        Raises:
-            ValueError: If model format is not supported
-        """
         if model.model_format not in self.runtime_formats:
             raise ValueError(f"Unsupported model format: {model.model_format}")
 
         # Build command line
         ctx_param = next(param for param in self.runtime_params if param.param_name == "ctx")
-        ctx_value = ctx_param.param_enum[param_list.get("ctx", "4K")]
+        ctx_value = ctx_param.param_enum[param_list.get("ctx", "8K")]
         cmd = [
             "python",
             self.script_path,
