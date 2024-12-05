@@ -108,6 +108,85 @@ class LlamaRuntime(Runtime):
             command=cmd
         )
 
+class LlamaSrbRuntime(Runtime):
+    """Runtime implementation for llama-srb API server."""
+
+    def __init__(self, name: str, script_path: str):
+        """Initialize LlamaSrbRuntime with path to api.py script.
+        
+        Args:
+            name (str): Name of the runtime
+            script_path (str): Path to api.py script
+        """
+        self.runtime_name = name
+        self.runtime_formats = ["gguf"]
+        self.script_path = script_path
+        
+        # Define available parameters
+        self.runtime_params = [
+            RuntimeParameter(
+                param_name="ctx",
+                param_description="Context size",
+                param_type="enum",
+                param_default="4K",
+                param_enum={
+                    "4K": 4096,
+                    "6K": 6144,
+                    "8K": 8192,
+                    "16K": 16384,
+                    "32K": 32768
+                }
+            ),
+            RuntimeParameter(
+                param_name="batch_size",
+                param_description="Number of completions to run in parallel",
+                param_type="int",
+                param_default=4
+            )
+        ]
+
+    def spawn(self, 
+              environment: Environment, 
+              listener: Listener, 
+              model: Model, 
+              param_list: dict[str, Any]) -> RunningModel:
+        """Spawn a llama-srb API server instance.
+        
+        Args:
+            environment (Environment): Environment configuration
+            listener (Listener): Network binding configuration
+            model (Model): Model to serve
+            param_list (Dict[str, Any]): Runtime parameters
+
+        Returns:
+            RunningModel: Handle to the running instance
+        
+        Raises:
+            ValueError: If model format is not supported
+        """
+        if model.model_format not in self.runtime_formats:
+            raise ValueError(f"Unsupported model format: {model.model_format}")
+
+        # Build command line
+        ctx_param = next(param for param in self.runtime_params if param.param_name == "ctx")
+        ctx_value = ctx_param.param_enum[param_list.get("ctx", "4K")]
+        cmd = [
+            "python",
+            self.script_path,
+            "--model", model.model_id,
+            "--port", str(listener.port),
+            "--ctx", str(ctx_value),
+            "--n", str(param_list.get("batch_size", 4))
+        ]
+
+        return RunningModel(
+            runtime=self,
+            model=model,
+            environment=environment,
+            listener=listener,
+            command=cmd
+        )
+
 class LiteLLMRuntime(Runtime):
     """Runtime implementation for LiteLLM server."""
 
