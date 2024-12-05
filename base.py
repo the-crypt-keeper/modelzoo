@@ -77,7 +77,8 @@ class RunningModel:
     """Class representing and controlling a running model instance."""
 
     def __init__(self, runtime: Runtime, model: Model, environment: Environment,
-                 listener: Listener, command: List[str], extra_environment: Dict[str,str] = {}):
+                 listener: Listener, command: List[str], extra_environment: Dict[str,str] = {},
+                 working_directory: str = None):
         """Initialize a new running model instance.
         
         Args:
@@ -93,6 +94,7 @@ class RunningModel:
         self.listener = listener
         self.command = command
         self.runtime = runtime
+        self.working_directory = working_directory
         self.process = None
         self.log_buffer = deque(maxlen=100)  # Keep last 100 lines
         self._log_thread = None
@@ -129,7 +131,8 @@ class RunningModel:
             text=True,
             bufsize=1,
             universal_newlines=True,
-            preexec_fn=os.setsid  # Create a new process group
+            preexec_fn=os.setsid,  # Create a new process group
+            cwd=self.working_directory
         )
 
         # Store the process group ID
@@ -206,5 +209,6 @@ class RunningModel:
             str: Human readable running model description
         """
         status = "running" if self.ready() else "stopped"
+        wd = f", cwd={self.working_directory}" if self.working_directory else ""
         return (f"RunningModel({self.model.model_name} @ {self.listener}, "
-                f"runtime={self.runtime.__class__.__name__}, status={status})")
+                f"runtime={self.runtime.__class__.__name__}, status={status}{wd})")
