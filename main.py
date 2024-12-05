@@ -18,7 +18,7 @@ try:
     keeper = ZooKeeper(args.config)
 except Exception as e:
     print(f"Error loading configuration from {args.config}: {str(e)}")
-    exit(1)
+    raise(e)
 proxy = ProxyServer(keeper)
 
 app = keeper.app

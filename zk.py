@@ -147,9 +147,9 @@ class ZooKeeper:
             try:
                 runtime_class = eval(runtime_config['class'])
                 runtime = runtime_class(name=runtime_config.get('name',runtime_config['class']), **runtime_config['params'])
-                self.runtimes[runtime_config['name']] = runtime
+                self.runtimes[runtime.runtime_name] = runtime
             except Exception as e:
-                print(f"Error creating runtime '{runtime_config['name']}' of class '{runtime_config['class']}': {str(e)}")
+                print(f"Error creating runtime '{runtime_config.get('name','<missing_name>')}' of class '{runtime_config.get('class','<missing class>')}': {str(e)}")
                 raise e
 
         # Load environments
