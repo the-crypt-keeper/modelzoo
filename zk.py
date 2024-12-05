@@ -1,6 +1,7 @@
 from typing import List, Dict
 import yaml
 from flask import Flask, jsonify, request, render_template
+from flask_cors import CORS
 import random
 import json
 import requests
@@ -96,6 +97,8 @@ class ModelHistory:
 class ZooKeeper:
     def __init__(self, config_path: str):
         self.app = Flask(__name__)
+        CORS(self.app)
+        
         self.zoos: Dict[str, Zoo] = {}
         self.runtimes: Dict[str, Runtime] = {}
         self.environments: Dict[str, Environment] = {}
