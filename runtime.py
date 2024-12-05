@@ -160,7 +160,6 @@ class LlamaSrbRuntime(Runtime):
         ctx_param = next(param for param in self.runtime_params if param.param_name == "ctx")
         ctx_value = ctx_param.param_enum[param_list.get("ctx", "8K")]
         cmd = [
-            "python",
             self.script_path,
             "--model", model.model_id,
             "--port", str(listener.port),
