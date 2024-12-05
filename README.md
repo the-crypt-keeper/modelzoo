@@ -142,7 +142,7 @@ Each zoo type is designed to accommodate different model discovery and managemen
 
 Runtimes are responsible for serving models.  The `name` field is optional, and will default to `class` if not provided.
 
-1. **LlamaRuntime**: For serving llama.cpp models.
+1. **LlamaRuntime**: For serving GGUF models with [llama-server](https://github.com/ggerganov/llama.cpp)
    - Compatible model formats: gguf
    - Parameters:
      - `bin_path` (str): Path to the llama.cpp server binary
@@ -154,20 +154,18 @@ Runtimes are responsible for serving models.  The `name` field is optional, and 
          bin_path: /path/to/llama-server
      ```
 
-2. **LiteLLMRuntime**: For serving models via LiteLLM.
-   - Compatible model formats: litellm
-      - All formats supported by LiteLLM (including OpenAI, Azure, Anthropic, and various open-source models)
+1. **LlamaSrbRuntime**: For serving GGUF models with [llama-srb-api](https://github.com/the-crypt-keeper/llama-srb-api)
+   - Compatible model formats: gguf
    - Parameters:
-     - `bin_path` (str, optional): Path to the LiteLLM binary (default: "litellm")
+     - `bin_path` (str): Path to the llama.cpp server binary
    - Example:
      ```yaml
-     - name: LiteLLMRuntime
-       class: LiteLLMRuntime
+     - class: LlamaSrbRuntime
        params:
-         bin_path: litellm
+         script_path: /path/to/llama-srb-api/api.py
      ```
 
-3. **KoboldCppRuntime**: For serving models using KoboldCpp.
+3. **KoboldCppRuntime**: For serving GGUF models using [KoboldCpp](https://github.com/LostRuins/koboldcpp)
    - Compatible model formats: gguf
    - Parameters:
      - `bin_path` (str): Path to the KoboldCpp binary
@@ -179,7 +177,7 @@ Runtimes are responsible for serving models.  The `name` field is optional, and 
          bin_path: /path/to/koboldcpp
      ```
 
-4. **TabbyRuntime**: For serving models using TabbyAPI.
+4. **TabbyRuntime**: For serving GPTQ and EXL2 models using [TabbyAPI](https://github.com/theroyallab/tabbyAPI)
    - Compatible model formats: gptq, exl2
    - Parameters:
      - `script_path` (str): Path to the TabbyAPI start.sh script
@@ -189,6 +187,19 @@ Runtimes are responsible for serving models.  The `name` field is optional, and 
        class: TabbyRuntime
        params:
          script_path: /path/to/tabby_api/start.sh
+     ```
+
+5. **LiteLLMRuntime**: For proxying models using [LiteLLM](https://github.com/BerriAI/litellm)
+   - Compatible model formats: litellm
+      - All formats supported by LiteLLM (including OpenAI, Azure, Anthropic, and various open-source models)
+   - Parameters:
+     - `bin_path` (str, optional): Path to the LiteLLM binary (default: "litellm")
+   - Example:
+     ```yaml
+     - name: LiteLLMRuntime
+       class: LiteLLMRuntime
+       params:
+         bin_path: litellm
      ```
 
 Each runtime defines compatible model formats and configurable parameters. When launching a model, you can specify additional runtime-specific parameters as needed. The choice of runtime depends on the model format and the specific features required for your use case.
