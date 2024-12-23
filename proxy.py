@@ -32,11 +32,11 @@ class ProxyServer:
          return self._handle_request('/v1/chat/completions')
 
      def _get_instance_key(self, instance):
-         """Generate a unique key for a model instance."""
+         """Generate a key for tracking model connections."""
          if instance['type'] == 'local':
-             return f"local:{instance['model'].model.model_name}:{instance['model'].listener.host}:{instance['model'].listener.port}"
+             return instance['model'].model.model_name
          else:
-             return f"remote:{instance['model']['model_name']}:{instance['model']['listener']['host']}:{instance['model']['listener']['port']}"
+             return instance['model']['model_name']
 
      def _handle_request(self, endpoint):
         try:
