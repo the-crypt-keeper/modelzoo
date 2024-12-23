@@ -31,13 +31,6 @@ class ProxyServer:
      def handle_chat_completions(self):
          return self._handle_request('/v1/chat/completions')
 
-     def _get_instance_key(self, instance):
-         """Generate a key for tracking model connections."""
-         if instance['type'] == 'local':
-             return instance['model'].model.model_name
-         else:
-             return instance['model']['model_name']
-
      def _handle_request(self, endpoint):
         try:
             data = request.get_json()
@@ -53,8 +46,7 @@ class ProxyServer:
             local_instances = [m for m in running_models if m.model.model_name == model_name]
             for model in local_instances:
                 model_instances.append({
-                    'type': 'local',
-                    'model': model,
+                    'model_name': model.model.model_name,
                     'url': f"http://{model.listener.host}:{model.listener.port}{endpoint}"
                 })
             
@@ -65,8 +57,7 @@ class ProxyServer:
                     for remote_model in peer['models']:
                         if remote_model['model_name'] == model_name:
                             model_instances.append({
-                                'type': 'remote',
-                                'model': remote_model,
+                                'model_name': remote_model['model_name'],
                                 'url': f"http://{remote_model['listener']['host']}:{remote_model['listener']['port']}{endpoint}"
                             })
             
@@ -76,16 +67,15 @@ class ProxyServer:
             # Select instance with least connections
             with self.connections_lock:
                 selected = min(model_instances, 
-                             key=lambda x: self.active_connections[self._get_instance_key(x)])
-                instance_key = self._get_instance_key(selected)
-                self.active_connections[instance_key] += 1
+                             key=lambda x: self.active_connections[x['model_name']])
+                self.active_connections[selected['model_name']] += 1
                 target_url = selected['url']
             headers = {k: v for k, v in request.headers.items() if k.lower() != 'host'}
 
             resp = requests.post(target_url, json=data, headers=headers, stream=True)
             content_type = resp.headers.get('Content-Type', 'application/json')
 
-            instance_key = instance_key  # Capture for closure
+            model_name = selected['model_name']  # Capture for closure
 
             @stream_with_context
             def generate():
@@ -98,7 +88,7 @@ class ProxyServer:
                 finally:
                     print("Closing proxy connection.")
                     with self.connections_lock:
-                        self.active_connections[instance_key] -= 1
+                        self.active_connections[model_name] -= 1
                     resp.close()
 
             return Response(generate(),
