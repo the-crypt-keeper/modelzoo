@@ -1,11 +1,15 @@
 from flask import request, Response, jsonify, stream_with_context
 import requests
 from werkzeug.exceptions import ClientDisconnected
+from threading import Lock
+from collections import defaultdict
 
 class ProxyServer:
      def __init__(self, zookeeper):
          self.zookeeper = zookeeper
          self.app = zookeeper.app
+         self.active_connections = defaultdict(int)
+         self.connections_lock = Lock()
          self.setup_routes()
 
      def setup_routes(self):
@@ -27,6 +31,13 @@ class ProxyServer:
      def handle_chat_completions(self):
          return self._handle_request('/v1/chat/completions')
 
+     def _get_instance_key(self, instance):
+         """Generate a unique key for a model instance."""
+         if instance['type'] == 'local':
+             return f"local:{instance['model'].model.model_name}:{instance['model'].listener.host}:{instance['model'].listener.port}"
+         else:
+             return f"remote:{instance['model']['model_name']}:{instance['model']['listener']['host']}:{instance['model']['listener']['port']}"
+
      def _handle_request(self, endpoint):
         try:
             data = request.get_json()
@@ -34,28 +45,47 @@ class ProxyServer:
             if not model_name:
                 return jsonify({"error": "Model not specified in the request"}), 400
 
-            running_models = self.zookeeper.get_running_models()
-            model = next((m for m in running_models if m.model.model_name == model_name), None)
+            # Get all available instances of the requested model
+            model_instances = []
             
-            if not model:
-                # Search in remote models
-                remote_models = self.zookeeper.get_remote_models()
-                for peer in remote_models:
-                    if peer['error'] is None:
-                        for remote_model in peer['models']:
-                            if remote_model['model_name'] == model_name:
-                                target_url = f"http://{remote_model['listener']['host']}:{remote_model['listener']['port']}{endpoint}"
-                                break
-                        if 'target_url' in locals():
-                            break
-                else:
-                    return jsonify({"error": f"Model {model_name} not found or not running"}), 404
-            else:
-                target_url = f"http://{model.listener.host}:{model.listener.port}{endpoint}"
+            # Check local running models
+            running_models = self.zookeeper.get_running_models()
+            local_instances = [m for m in running_models if m.model.model_name == model_name]
+            for model in local_instances:
+                model_instances.append({
+                    'type': 'local',
+                    'model': model,
+                    'url': f"http://{model.listener.host}:{model.listener.port}{endpoint}"
+                })
+            
+            # Check remote models
+            remote_models = self.zookeeper.get_remote_models()
+            for peer in remote_models:
+                if peer['error'] is None:
+                    for remote_model in peer['models']:
+                        if remote_model['model_name'] == model_name:
+                            model_instances.append({
+                                'type': 'remote',
+                                'model': remote_model,
+                                'url': f"http://{remote_model['listener']['host']}:{remote_model['listener']['port']}{endpoint}"
+                            })
+            
+            if not model_instances:
+                return jsonify({"error": f"Model {model_name} not found or not running"}), 404
+            
+            # Select instance with least connections
+            with self.connections_lock:
+                selected = min(model_instances, 
+                             key=lambda x: self.active_connections[self._get_instance_key(x)])
+                instance_key = self._get_instance_key(selected)
+                self.active_connections[instance_key] += 1
+                target_url = selected['url']
             headers = {k: v for k, v in request.headers.items() if k.lower() != 'host'}
 
             resp = requests.post(target_url, json=data, headers=headers, stream=True)
             content_type = resp.headers.get('Content-Type', 'application/json')
+
+            instance_key = instance_key  # Capture for closure
 
             @stream_with_context
             def generate():
@@ -67,6 +97,8 @@ class ProxyServer:
                     print("Client disconnected. Stopping stream.")
                 finally:
                     print("Closing proxy connection.")
+                    with self.connections_lock:
+                        self.active_connections[instance_key] -= 1
                     resp.close()
 
             return Response(generate(),
