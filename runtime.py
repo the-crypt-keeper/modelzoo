@@ -149,6 +149,12 @@ class VLLMRuntime(Runtime):
                 param_description="Target GPU memory utilization",
                 param_type="float",
                 param_default=0.95
+            ),
+            RuntimeParameter(
+                param_name="enforce_eager",
+                param_description="Enforce eager execution mode",
+                param_type="bool",
+                param_default=True
             )
         ]
 
@@ -186,6 +192,10 @@ class VLLMRuntime(Runtime):
             f"--tensor-parallel-size {param_list.get('tensor_parallel_size', 1)} "
             f"--max-model-len {max_len_value} "
             f"--gpu-memory-utilization {param_list.get('gpu_memory_utilization', 0.95)}"
+        )
+
+        if param_list.get('enforce_eager', True):
+            vllm_cmd += " --enforce-eager"
         )
 
         # Create temporary shell script
