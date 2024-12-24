@@ -108,6 +108,95 @@ class LlamaRuntime(Runtime):
             command=cmd
         )
 
+class VLLMRuntime(Runtime):
+    """Runtime implementation for vLLM inference server."""
+
+    def __init__(self, name: str, venv_path: str):
+        """Initialize VLLMRuntime with path to virtual environment.
+        
+        Args:
+            name (str): Name of the runtime
+            venv_path (str): Path to virtual environment containing vllm
+        """
+        self.runtime_name = name
+        self.runtime_formats = ["gguf", "fp16", "awq", "gptq"]
+        self.venv_path = venv_path
+        
+        # Define available parameters
+        self.runtime_params = [
+            RuntimeParameter(
+                param_name="max_model_len",
+                param_description="Maximum sequence length",
+                param_type="enum",
+                param_default="4K",
+                param_enum={
+                    "4K": 4096,
+                    "6K": 6144,
+                    "8K": 8192,
+                    "16K": 16384,
+                    "32K": 32768
+                }
+            ),
+            RuntimeParameter(
+                param_name="tensor_parallel_size",
+                param_description="Number of GPUs for tensor parallelism",
+                param_type="int",
+                param_default=1
+            ),
+            RuntimeParameter(
+                param_name="gpu_memory_utilization",
+                param_description="Target GPU memory utilization",
+                param_type="float",
+                param_default=0.95
+            )
+        ]
+
+    def spawn(self, 
+              environment: Environment, 
+              listener: Listener, 
+              model: Model, 
+              param_list: dict[str, Any]) -> RunningModel:
+        """Spawn a vLLM server instance.
+        
+        Args:
+            environment (Environment): Environment configuration
+            listener (Listener): Network binding configuration
+            model (Model): Model to serve
+            param_list (Dict[str, Any]): Runtime parameters
+
+        Returns:
+            RunningModel: Handle to the running instance
+        
+        Raises:
+            ValueError: If model format is not supported
+        """
+        if model.model_format not in self.runtime_formats:
+            raise ValueError(f"Unsupported model format: {model.model_format}")
+
+        # Build command line
+        activate_cmd = f"source {self.venv_path}/bin/activate"
+        
+        max_len_param = next(param for param in self.runtime_params if param.param_name == "max_model_len")
+        max_len_value = max_len_param.param_enum[param_list.get("max_model_len", "4K")]
+        
+        cmd = [
+            "/bin/bash", "-c",
+            f"{activate_cmd} && vllm serve {model.model_id} "
+            f"--host {listener.host} "
+            f"--port {listener.port} "
+            f"--tensor-parallel-size {param_list.get('tensor_parallel_size', 1)} "
+            f"--max-model-len {max_len_value} "
+            f"--gpu-memory-utilization {param_list.get('gpu_memory_utilization', 0.95)}"
+        ]
+
+        return RunningModel(
+            runtime=self,
+            model=model,
+            environment=environment,
+            listener=listener,
+            command=cmd
+        )
+
 class LlamaSrbRuntime(Runtime):
     """Runtime implementation for llama-srb API server."""
 
