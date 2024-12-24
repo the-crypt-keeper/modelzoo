@@ -179,14 +179,21 @@ class VLLMRuntime(Runtime):
         max_len_param = next(param for param in self.runtime_params if param.param_name == "max_model_len")
         max_len_value = max_len_param.param_enum[param_list.get("max_model_len", "4K")]
         
-        cmd = [
-            "/bin/bash", "-c",
-            f"{activate_cmd} && vllm serve {model.model_id} "
+        # Build the vllm command
+        vllm_cmd = (
+            f"vllm serve {model.model_id} "
             f"--host {listener.host} "
             f"--port {listener.port} "
             f"--tensor-parallel-size {param_list.get('tensor_parallel_size', 1)} "
             f"--max-model-len {max_len_value} "
             f"--gpu-memory-utilization {param_list.get('gpu_memory_utilization', 0.95)}"
+        )
+
+        # Create wrapper script that preserves environment
+        cmd = [
+            "/bin/bash", "-c",
+            f'source {self.venv_path}/bin/activate && exec env "$@" {vllm_cmd}', 
+            "preserve_env"  # This becomes $0 in the shell
         ]
 
         return RunningModel(
@@ -194,7 +201,8 @@ class VLLMRuntime(Runtime):
             model=model,
             environment=environment,
             listener=listener,
-            command=cmd
+            command=cmd,
+            extra_environment=environment.env_vars if environment.env_vars else {}
         )
 
 class LlamaSrbRuntime(Runtime):
