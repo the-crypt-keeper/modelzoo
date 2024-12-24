@@ -221,6 +221,7 @@
                 </h3>
                 <p>{{ running.listener }} via <i>{{ running.runtime.runtime_name }}</i> on <i>{{ running.environment.name }}</i></p>
                 <button onclick="toggleLogs({{ loop.index0 }})">Show/Hide Logs</button>
+                <button onclick="window.open('http://{{ running.listener.host }}:{{ running.listener.port }}', '_blank')">Open</button>
                 <button onclick="stopModel({{ loop.index0 }})">Stop</button>
                 <div class="logs" id="logs-{{ loop.index0 }}" style="display: {{ 'block' if not running.status()['ready'] else 'none' }};"></div>
             </div>
