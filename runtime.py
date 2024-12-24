@@ -1,4 +1,5 @@
 import os
+import tempfile
 from base import *
 from typing import Any, List, Dict
 
@@ -105,7 +106,8 @@ class LlamaRuntime(Runtime):
             model=model,
             environment=environment,
             listener=listener,
-            command=cmd
+            command=cmd,
+            cleanup_files=[script_path]  # This will ensure the temp file gets cleaned up
         )
 
 class VLLMRuntime(Runtime):
@@ -187,12 +189,16 @@ class VLLMRuntime(Runtime):
             f"--gpu-memory-utilization {param_list.get('gpu_memory_utilization', 0.95)}"
         )
 
-        # Create wrapper script that preserves environment
-        cmd = [
-            "/bin/bash", "-c",
-            f'source {self.venv_path}/bin/activate && exec env "$@" {vllm_cmd}', 
-            "preserve_env"  # This becomes $0 in the shell
-        ]
+        # Create temporary shell script
+        script_fd, script_path = tempfile.mkstemp(prefix='vllm_', suffix='.sh')
+        with os.fdopen(script_fd, 'w') as f:
+            f.write(f"""#!/bin/bash
+source {self.venv_path}/bin/activate
+exec {vllm_cmd}
+""")
+        os.chmod(script_path, 0o755)
+
+        cmd = [script_path]
 
         return RunningModel(
             runtime=self,
