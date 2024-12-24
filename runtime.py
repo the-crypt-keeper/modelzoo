@@ -106,8 +106,7 @@ class LlamaRuntime(Runtime):
             model=model,
             environment=environment,
             listener=listener,
-            command=cmd,
-            cleanup_files=[script_path]  # This will ensure the temp file gets cleaned up
+            command=cmd
         )
 
 class VLLMRuntime(Runtime):
@@ -194,7 +193,8 @@ class VLLMRuntime(Runtime):
         with os.fdopen(script_fd, 'w') as f:
             f.write(f"""#!/bin/bash
 source {self.venv_path}/bin/activate
-exec {vllm_cmd}
+echo env: $CUDA_VISIBLE_DEVICES $CUDA_DEVICE_ORDER
+{vllm_cmd}
 """)
         os.chmod(script_path, 0o755)
 
