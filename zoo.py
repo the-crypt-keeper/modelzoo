@@ -280,6 +280,14 @@ class KoboldCheckpointZoo(Zoo):
         Returns:
             int: Size of the model file in bytes, or 0 if not found
         """
+        # First check if model_file is an absolute path to an existing file
+        abs_path = Path(model_file)
+        if abs_path.is_absolute() and abs_path.exists():
+            try:
+                return abs_path.stat().st_size
+            except:
+                return 0
+
         # Extract filename from URL if needed
         filename = model_file.split('/')[-1]
         model_path = checkpoint_dir / filename
