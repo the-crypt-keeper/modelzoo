@@ -252,3 +252,85 @@ class OpenAIZoo(Zoo):
 
     def __str__(self) -> str:
         return f"OpenAIZoo(api_url={self.api_url}, cache={self.cache}, models_override={'Yes' if self.models else 'No'})"
+
+class KoboldCheckpointZoo(Zoo):
+    """Zoo implementation that discovers Kobold checkpoint files."""
+
+    def __init__(self, name: str, path: str):
+        """Initialize a KoboldCheckpointZoo with a specific path.
+        
+        Args:
+            name (str): Name of the zoo
+            path (str): Path to folder containing checkpoint files
+        """
+        super().__init__(name)
+        self.path = Path(path)
+        if not self.path.exists():
+            raise ValueError(f"Path does not exist: {path}")
+        if not self.path.is_dir():
+            raise ValueError(f"Path is not a directory: {path}")
+
+    def _get_model_file_size(self, model_file: str, checkpoint_dir: Path) -> int:
+        """Get the size of the referenced model file.
+        
+        Args:
+            model_file (str): Name or URL of the model file
+            checkpoint_dir (Path): Directory containing the checkpoint
+            
+        Returns:
+            int: Size of the model file in bytes, or 0 if not found
+        """
+        # Extract filename from URL if needed
+        filename = model_file.split('/')[-1]
+        model_path = checkpoint_dir / filename
+        
+        try:
+            return model_path.stat().st_size
+        except:
+            return 0
+
+    def catalog(self) -> List[Model]:
+        """Scan folder path and return list of discovered Kobold checkpoint files.
+        
+        Returns:
+            List[Model]: List of models found in the folder
+        """
+        models = []
+        
+        # Get all .kccpt files
+        checkpoint_files = list(self.path.rglob("*.kccpt"))
+        
+        for checkpoint_file in checkpoint_files:
+            try:
+                with open(checkpoint_file, 'r') as f:
+                    config = json.load(f)
+                
+                # Look for model path in config fields in priority order
+                model_path = None
+                for field in ['model', 'model_param', 'sdmodel']:
+                    if field in config:
+                        model_path = config[field]
+                        break
+                
+                if model_path:
+                    # Get size of the referenced model file
+                    model_size = self._get_model_file_size(model_path, checkpoint_file.parent)
+                    
+                    # Create model instance
+                    model = Model(
+                        zoo_name=self.name,
+                        model_id=str(checkpoint_file.absolute()),
+                        model_format="kccpt",
+                        model_name=checkpoint_file.stem,
+                        model_size=model_size
+                    )
+                    models.append(model)
+                
+            except Exception as e:
+                print(f"Warning: Error processing checkpoint file {checkpoint_file.name}: {e}")
+                continue
+                
+        return models
+
+    def __str__(self) -> str:
+        return f"KoboldCheckpointZoo(path={self.path})"
