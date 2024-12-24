@@ -121,6 +121,7 @@ class RunningModel:
         env = os.environ.copy()
         env.update({k: str(v) for k, v in self.environment.vars.items()})
         env.update(self.extra_environment)
+        env.update({'CUDA_DEVICE_ORDER': 'PCI_BUS_ID'})
 
         # Start process
         self.process = subprocess.Popen(

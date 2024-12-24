@@ -22,11 +22,18 @@ except Exception as e:
 proxy = ProxyServer(keeper)
 
 app = keeper.app
+terminating = False
 
 def signal_handler(signum, frame):
-    print("Received signal to terminate. Shutting down gracefully...")
-    keeper.shutdown()
-    http_server.stop()
+    global terminating
+    if not terminating:
+        terminating = True
+        print("Received signal to terminate. Shutting down gracefully...")
+        keeper.shutdown()
+        http_server.stop()
+    else:
+        print("Received second interrupt, hard exiting.")
+        exit(1)
 
 if __name__ == '__main__':
     signal.signal(signal.SIGINT, signal_handler)

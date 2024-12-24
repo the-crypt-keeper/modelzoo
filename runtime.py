@@ -196,7 +196,6 @@ class VLLMRuntime(Runtime):
 
         if param_list.get('enforce_eager', True):
             vllm_cmd += " --enforce-eager"
-        )
 
         # Create temporary shell script
         script_fd, script_path = tempfile.mkstemp(prefix='vllm_', suffix='.sh')
@@ -207,15 +206,12 @@ echo env: $CUDA_VISIBLE_DEVICES $CUDA_DEVICE_ORDER
 {vllm_cmd}
 """)
         os.chmod(script_path, 0o755)
-
-        cmd = [script_path]
-
         return RunningModel(
             runtime=self,
             model=model,
             environment=environment,
             listener=listener,
-            command=cmd
+            command=[script_path]
         )
 
 class LlamaSrbRuntime(Runtime):
