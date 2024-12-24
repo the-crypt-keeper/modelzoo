@@ -8,7 +8,7 @@ class ProxyServer:
      def __init__(self, zookeeper):
          self.zookeeper = zookeeper
          self.app = zookeeper.app
-         self.active_connections = defaultdict(int)
+         self.active_connections = defaultdict(int)  # tracks connections by full URL
          self.connections_lock = Lock()
          self.setup_routes()
 
@@ -80,8 +80,8 @@ class ProxyServer:
             # Select instance with least connections
             with self.connections_lock:
                 selected = min(model_instances, 
-                             key=lambda x: self.active_connections[x['model_name']])
-                self.active_connections[selected['model_name']] += 1
+                             key=lambda x: self.active_connections[x['url']])
+                self.active_connections[selected['url']] += 1
                 target_url = selected['url']
             headers = {k: v for k, v in request.headers.items() if k.lower() != 'host'}
 
@@ -101,7 +101,7 @@ class ProxyServer:
                 finally:
                     print("Closing proxy connection.")
                     with self.connections_lock:
-                        self.active_connections[model_name] -= 1
+                        self.active_connections[target_url] -= 1
                     resp.close()
 
             return Response(generate(),
