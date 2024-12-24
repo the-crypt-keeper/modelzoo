@@ -173,9 +173,7 @@ class VLLMRuntime(Runtime):
         if model.model_format not in self.runtime_formats:
             raise ValueError(f"Unsupported model format: {model.model_format}")
 
-        # Build command line
-        activate_cmd = f"source {self.venv_path}/bin/activate"
-        
+        # Build command line      
         max_len_param = next(param for param in self.runtime_params if param.param_name == "max_model_len")
         max_len_value = max_len_param.param_enum[param_list.get("max_model_len", "4K")]
         
@@ -201,8 +199,7 @@ class VLLMRuntime(Runtime):
             model=model,
             environment=environment,
             listener=listener,
-            command=cmd,
-            extra_environment=environment.env_vars if environment.env_vars else {}
+            command=cmd
         )
 
 class LlamaSrbRuntime(Runtime):
