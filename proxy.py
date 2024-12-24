@@ -16,6 +16,7 @@ class ProxyServer:
          self.app.route('/v1/models', methods=['GET'])(self.get_models)
          self.app.route('/v1/completions', methods=['POST'])(self.handle_completions)
          self.app.route('/v1/chat/completions', methods=['POST'])(self.handle_chat_completions)
+         self.app.route('/health', methods=['GET'])(self.health_check)
 
      def get_models(self):
          unique_models = {}
@@ -43,6 +44,19 @@ class ProxyServer:
 
      def handle_chat_completions(self):
          return self._handle_request('/v1/chat/completions')
+
+     def health_check(self):
+         # Check local running models
+         if len(self.zookeeper.get_running_models()) > 0:
+             return '', 200
+             
+         # Check remote models
+         remote_models = self.zookeeper.get_remote_models()
+         for peer in remote_models:
+             if peer['error'] is None and len(peer['models']) > 0:
+                 return '', 200
+                 
+         return '', 500
 
      def _handle_request(self, endpoint):
         try:
