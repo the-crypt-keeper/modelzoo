@@ -305,8 +305,8 @@ class KoboldCheckpointZoo(Zoo):
         """
         models = []
         
-        # Get all .kccpt files
-        checkpoint_files = list(self.path.rglob("*.kccpt"))
+        # Get all .kcppt files
+        checkpoint_files = list(self.path.rglob("*.kcppt"))
         
         for checkpoint_file in checkpoint_files:
             try:
@@ -316,7 +316,7 @@ class KoboldCheckpointZoo(Zoo):
                 # Look for model path in config fields in priority order
                 model_path = None
                 for field in ['model', 'model_param', 'sdmodel']:
-                    if field in config:
+                    if config.get(field):
                         model_path = config[field]
                         break
                 
@@ -328,7 +328,7 @@ class KoboldCheckpointZoo(Zoo):
                     model = Model(
                         zoo_name=self.name,
                         model_id=str(checkpoint_file.absolute()),
-                        model_format="kccpt",
+                        model_format="kcppt",
                         model_name=checkpoint_file.stem,
                         model_size=model_size
                     )

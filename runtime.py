@@ -274,7 +274,7 @@ class KoboldCppRuntime(Runtime):
             bin_path (str): Path to koboldcpp executable
         """
         self.runtime_name = name
-        self.runtime_formats = ["gguf"]
+        self.runtime_formats = ["gguf","kcppt"]
         self.bin_path = bin_path
         
         # Define available parameters
@@ -342,15 +342,16 @@ class KoboldCppRuntime(Runtime):
         Raises:
             ValueError: If model format is not supported
         """
-        if model.model_format != "gguf":
+        if model.model_format not in self.runtime_formats:
             raise ValueError(f"Unsupported model format: {model.model_format}")
 
         # Build command line
         context_param = next(param for param in self.runtime_params if param.param_name == "contextsize")
         context_value = context_param.param_enum[param_list.get("contextsize", "4K")]
-        cmd = [
-            self.bin_path,
-            "--model", model.model_id,
+        
+        model_spec = ["--model", model.model_id] if model.model_format == "gguf" else [model.model_id]
+        
+        cmd = [self.bin_path] + model_spec + [
             "--contextsize", str(context_value),
             "--gpulayers", str(param_list.get("gpulayers", -1)),
             "--host", listener.host,
@@ -371,13 +372,17 @@ class KoboldCppRuntime(Runtime):
         extra_args = param_list.get("extra_args", "").strip()
         if extra_args:
             cmd.extend(extra_args.split())
+            
+        # set working dir to where the model is (for kcppt)
+        working_dir = os.path.dirname(os.path.abspath(model.model_id))
 
         return RunningModel(
             runtime=self,            
             model=model,
             environment=environment,
             listener=listener,
-            command=cmd
+            command=cmd,
+            working_directory=working_dir
         )
 
 class TabbyRuntime(Runtime):
