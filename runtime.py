@@ -481,6 +481,9 @@ class KoboldCppRuntime(Runtime):
             
         # set working dir to where the model is (for kcppt)
         working_dir = os.path.dirname(os.path.abspath(model.model_id))
+        
+        # Tell the proxy that this is a kobold endpoint
+        listener.protocol = 'kobold'
 
         return RunningModel(
             runtime=self,            
