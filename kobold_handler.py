@@ -1,8 +1,12 @@
 import litellm
 import time
-from typing import Any, Optional, Union
+import httpx
+from typing import Any, Optional, Union, Protocol
 from litellm import CustomLLM
 from litellm.types.utils import ImageResponse, ImageObject
+
+class AsyncHTTPHandler(Protocol):
+    async def post(self, url: str, json: dict) -> Any: ...
 
 class KoboldCpp(CustomLLM):
     async def aimage_generation(self, model: str, prompt: str, model_response: ImageResponse, optional_params: dict, logging_obj: Any, timeout: Optional[Union[float, httpx.Timeout]] = None, client: Optional[AsyncHTTPHandler] = None,) -> ImageResponse:
