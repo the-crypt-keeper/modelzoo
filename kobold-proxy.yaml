@@ -32,11 +32,16 @@ model_list:
   - model_name: "dall-e-3"
     litellm_params:
       model: "openai/dall-e-3"      
+  - model_name: "stable-diffusion-xl-1.0-turbo-FP16.gguf"
+    litellm_params:
+      model: "llamabox/stable-diffusion-xl-1.0-turbo-FP16.gguf"
+      api_base: "http://falcon:1234/"
 
 litellm_settings:
   custom_provider_map:
   - {"provider": "kobold", "custom_handler": kobold_handler.kobold_cpp}
   - {"provider": "sdserver", "custom_handler": kobold_handler.sd_server}
+  - {"provider": "llamabox", "custom_handler": kobold_handler.llama_box}
 
 general_settings:
   pass_through_endpoints:
