@@ -54,7 +54,9 @@ class SDServer(CustomLLM):
 
         if 'n' in optional_params: optional_params['batch_count'] = optional_params.pop('n')
         
-        if 'size' in optional_params: optional_params['width'], optional_params['height'] = optional_params.pop('size').split('x')
+        if 'size' in optional_params:
+            optional_params['width'] = int(optional_params.pop('size').split('x')[0])
+            optional_params['height'] = int(optional_params.pop('size').split('x')[1])
 
         if 'steps' not in optional_params: optional_params['steps'] = 8
         optional_params['sample_steps'] = optional_params.pop('steps')
