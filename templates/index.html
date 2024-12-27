@@ -480,11 +480,26 @@
             if (!window.logPollers) window.logPollers = {};
             
             function updateStatusAndLogs() {
-                $.get(`/api/model/logs?idx=${idx}`, function(logs) {
-                    $(`#logs-${idx}`).html(logs.reverse().join('<br>'));
+                $.ajax({
+                    url: '/api/model/logs',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ idx: idx }),
+                    success: function(response) {
+                        if (response.success) {
+                            $(`#logs-${idx}`).html(response.logs.reverse().join('<br>'));
+                        }
+                    }
                 });
 
-                $.get(`/api/model/status?idx=${idx}`, function(status) {
+                $.ajax({
+                    url: '/api/model/status',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ idx: idx }),
+                    success: function(response) {
+                        if (!response.success) return;
+                        const status = response.status;
                     const runningModel = $(`#logs-${idx}`).closest('.running-model');
                     const statusIndicator = runningModel.find('.status-indicator');
                     

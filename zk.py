@@ -167,14 +167,18 @@ class ZooKeeper:
         self.app.route('/')(exception_handler(self.render_index))
         self.app.route('/api/model/launch', methods=['POST'])(exception_handler(self.handle_launch_model))
         self.app.route('/api/model/stop', methods=['POST'])(exception_handler(self.handle_stop_model))
-        self.app.route('/api/model/logs')(exception_handler(self.handle_get_logs))
-        self.app.route('/api/model/status')(exception_handler(self.handle_get_status))
+        self.app.route('/api/model/logs', methods=['POST'])(exception_handler(self.handle_get_logs))
+        self.app.route('/api/model/status', methods=['POST'])(exception_handler(self.handle_get_status))
         self.app.route('/api/running_models')(exception_handler(self.handle_get_running_models))
 
     def handle_get_status(self):
-        model_idx = request.args.get('idx', type=int)
+        data = request.get_json()
+        model_idx = data.get('idx')
         if model_idx is not None and 0 <= model_idx < len(self.running_models):
-            return jsonify(self.running_models[model_idx].status())
+            return jsonify({
+                'success': True,
+                'status': self.running_models[model_idx].status()
+            })
         return jsonify({'success': False, 'error': 'Model not found'}), 404
 
     def sort_models(self, catalog):
@@ -247,9 +251,13 @@ class ZooKeeper:
         return jsonify({'success': False, 'error': 'Model not found'}), 404
 
     def handle_get_logs(self):
-        model_idx = request.args.get('idx', type=int)
+        data = request.get_json()
+        model_idx = data.get('idx')
         if model_idx is not None and 0 <= model_idx < len(self.running_models):
-            return jsonify(self.running_models[model_idx].logs())
+            return jsonify({
+                'success': True,
+                'logs': self.running_models[model_idx].logs()
+            })
         return jsonify({'success': False, 'error': 'Model not found'}), 404
 
     def handle_get_running_models(self):
