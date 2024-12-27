@@ -440,14 +440,15 @@
             $.ajax({
                 url: '/api/model/launch',
                 method: 'POST',
-                data: {
+                contentType: 'application/json',
+                data: JSON.stringify({
                     zoo_name: zooName,
                     model_id: modelId,
                     runtime: runtime,
                     environment: env,
                     port: parseInt(port, 10),
-                    params: JSON.stringify(params)
-                },
+                    params: params
+                }),
                 success: function() {
                     $('#launch-dialog').hide();
                     location.reload();

@@ -202,13 +202,13 @@ class ZooKeeper:
         )
 
     def handle_launch_model(self):
-        data = request.form
+        data = request.get_json()
         zoo_name = data['zoo_name']
         model_id = data['model_id']
         runtime_name = data['runtime']
         env_name = data['environment']
         port = int(data['port'])
-        params = json.loads(data['params'])
+        params = data['params']
 
         # Find model
         zoo = self.zoos.get(zoo_name)
