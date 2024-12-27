@@ -173,7 +173,8 @@ class ZooKeeper:
 
     def handle_get_status(self):
         data = request.get_json()
-        model_idx = data.get('idx', type=int)
+        model_idx = data.get('idx')
+        model_idx = int(model_idx) if model_idx is not None else None
         if model_idx is not None and 0 <= model_idx < len(self.running_models):
             return jsonify({
                 'success': True,
@@ -252,7 +253,8 @@ class ZooKeeper:
 
     def handle_get_logs(self):
         data = request.get_json()
-        model_idx = data.get('idx', type=int)
+        model_idx = data.get('idx')
+        model_idx = int(model_idx) if model_idx is not None else None
         if model_idx is not None and 0 <= model_idx < len(self.running_models):
             return jsonify({
                 'success': True,
