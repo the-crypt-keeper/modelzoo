@@ -500,16 +500,17 @@
                     success: function(response) {
                         if (!response.success) return;
                         const status = response.status;
-                    const runningModel = $(`#logs-${idx}`).closest('.running-model');
-                    const statusIndicator = runningModel.find('.status-indicator');
-                    
-                    statusIndicator.removeClass('status-ready status-starting status-stopped');
-                    if (status.ready) {
-                        statusIndicator.addClass('status-ready');
-                    } else if (status.running) {
-                        statusIndicator.addClass('status-starting');
-                    } else {
-                        statusIndicator.addClass('status-stopped');
+                        const runningModel = $(`#logs-${idx}`).closest('.running-model');
+                        const statusIndicator = runningModel.find('.status-indicator');
+                        
+                        statusIndicator.removeClass('status-ready status-starting status-stopped');
+                        if (status.ready) {
+                            statusIndicator.addClass('status-ready');
+                        } else if (status.running) {
+                            statusIndicator.addClass('status-starting');
+                        } else {
+                            statusIndicator.addClass('status-stopped');
+                        }
                     }
                 });
             }
