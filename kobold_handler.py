@@ -116,16 +116,17 @@ class LlamaBox(CustomLLM):
             params['sample_method'] = optional_params['sampler']
         
         print("llamabox aimage_generation() called:", params, "timeout=", timeout)
+        response = None
         try:
             response = await client.post("/v1/images/generations", json=params)
             response.raise_for_status()
         except Exception as e:
-            raise ValueError("HTTP error", response.status_code)
+            raise ValueError("HTTP error", response.status_code if response is not None else "Call failed")
 
         try:
             result = response.json()
         except Exception as e:
-            raise ValueError("JSON parse error", response.text)
+            raise ValueError("JSON parse error", response.text if response is not None else "Call failed")
         
         return ImageResponse(
             created=int(time.time()),
