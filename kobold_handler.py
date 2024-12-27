@@ -27,14 +27,14 @@ class KoboldCpp(CustomLLM):
         print("koboldcpp aimage_generation() called:", optional_params, "timeout=", timeout)
         try:
             response = await client.post("/sdapi/v1/txt2img", json=optional_params)
+            response.raise_for_status()
         except Exception as e:
-            print("HTTP ERROR:", e)
+            raise ValueError("HTTP error", response.status_code)
             
         try:
             result = response.json()
         except Exception as e:
-            print("PARSE ERROR:", e)
-            result = { 'images': [] }
+            raise ValueError("JSON parse error", response.text)
         
         return ImageResponse(
             created=int(time.time()),
@@ -68,14 +68,14 @@ class SDServer(CustomLLM):
         print("sd-server aimage_generation() called:", optional_params, "timeout=", timeout)
         try:
             response = await client.post("/txt2img", json=optional_params)
+            response.raise_for_status()
         except Exception as e:
-            print("HTTP ERROR:", e)
-            
+            raise ValueError("HTTP error", response.status_code)
+
         try:
             result = response.json()
         except Exception as e:
-            print("PARSE ERROR:", e)
-            result = { 'images': [] }
+            raise ValueError("JSON parse error", response.text)
         
         return ImageResponse(
             created=int(time.time()),

@@ -1,8 +1,8 @@
 model_list:
-  - model_name: "flux-hyp8-Q8_0-kobold"
+  - model_name: "flux1-schnell-q4_k"
     litellm_params:
-      model: "kobold/flux-hyp8-Q8_0"
-      api_base: "http://falcon:58605/"
+      model: "sdserver/flux1-schnell-q4_k"
+      api_base: "http://falcon:55161/"
       timeout: 180
     model_info:
       mode: image_generation
@@ -25,6 +25,13 @@ model_list:
   #   litellm_params:
   #     model: "openai/L3-8B-Stheno-v3.2-6.5bpw-h8-exl2"
   #     api_base: "http://localhost:57384/v1"
+  - model_name: "phi-4-Q4_K_M"
+    litellm_params:
+      model: "openai/phi-4-Q4_K_M"
+      api_base: "http://localhost:59119/"
+  - model_name: "dall-e-3"
+    litellm_params:
+      model: "openai/dall-e-3"      
 
 litellm_settings:
   custom_provider_map:
