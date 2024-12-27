@@ -170,7 +170,11 @@ class RunningModel:
         """
         try:
             response = requests.get(f"http://{self.listener.host}:{self.listener.port}/v1/models", timeout=2)
-            return response.status_code == 200
+            if self.listener.protocol == 'sd-server':
+                # SD-server does not have a health check endpoint
+                return response.status_code == 404
+            else:
+                return response.status_code == 200
         except requests.RequestException:
             return False
 

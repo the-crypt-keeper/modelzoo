@@ -1,5 +1,7 @@
 import os
 import tempfile
+import json
+from pathlib import Path
 from base import *
 from typing import Any, List, Dict
 
@@ -514,9 +516,7 @@ class SDServerRuntime(Runtime):
                 param_name="cfg_scale",
                 param_description="CFG Scale",
                 param_type="float",
-                param_default=1.0,
-                param_min=1.0,
-                param_max=7.0
+                param_default=1.0
             ),
             RuntimeParameter(
                 param_name="sampling_method",
@@ -629,13 +629,13 @@ class SDServerRuntime(Runtime):
         cmd.extend(["--cfg-scale", str(param_list.get("cfg_scale", 1.0))])
         cmd.extend(["-p", param_list.get("default_prompt", "default prompt")])
 
+        listener.protocol = 'sd-server'        
         return RunningModel(
             runtime=self,
             model=model,
             environment=environment,
             listener=listener,
-            command=cmd,
-            extra_environment={"CUDA_VISIBLE_DEVICES": environment.gpu_list[0] if environment.gpu_list else "0"}
+            command=cmd
         )
 
 class TabbyRuntime(Runtime):
