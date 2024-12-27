@@ -53,11 +53,16 @@ class SDServer(CustomLLM):
             return ImageResponse()
 
         if 'n' in optional_params: optional_params['batch_count'] = optional_params.pop('n')
+        
         if 'size' in optional_params: optional_params['width'], optional_params['height'] = optional_params.pop('size').split('x')
 
-        if 'steps' not in optional_params: optional_params['steps'] = 8            
+        if 'steps' not in optional_params: optional_params['steps'] = 8
+        optional_params['sample_steps'] = optional_params.pop('steps')
+        
         if 'negative_prompt' not in optional_params: optional_params['negative_prompt'] = "Bad quality, ugly"
+        
         if 'seed' not in optional_params: optional_params['seed'] = -1
+        
         optional_params['prompt'] = prompt
         
         print("sd-server aimage_generation() called:", optional_params, "timeout=", timeout)
