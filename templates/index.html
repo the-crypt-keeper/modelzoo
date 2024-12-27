@@ -479,11 +479,11 @@
             if (!window.logPollers) window.logPollers = {};
             
             function updateStatusAndLogs() {
-                $.get(`/api/model/${idx}/logs`, function(logs) {
+                $.get(`/api/model/logs?idx=${idx}`, function(logs) {
                     $(`#logs-${idx}`).html(logs.reverse().join('<br>'));
                 });
 
-                $.get(`/api/model/${idx}/status`, function(status) {
+                $.get(`/api/model/status?idx=${idx}`, function(status) {
                     const runningModel = $(`#logs-${idx}`).closest('.running-model');
                     const statusIndicator = runningModel.find('.status-indicator');
                     
@@ -503,7 +503,7 @@
         }
 
         function stopModel(idx) {
-            $.post(`/api/model/${idx}/stop`, function() {
+            $.post(`/api/model/stop?idx=${idx}`, function() {
                 location.reload();
             });
         }

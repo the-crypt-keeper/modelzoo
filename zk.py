@@ -166,13 +166,14 @@ class ZooKeeper:
     def setup_routes(self):
         self.app.route('/')(exception_handler(self.render_index))
         self.app.route('/api/model/launch', methods=['POST'])(exception_handler(self.handle_launch_model))
-        self.app.route('/api/model/<int:model_idx>/stop', methods=['POST'])(exception_handler(self.handle_stop_model))
-        self.app.route('/api/model/<int:model_idx>/logs')(exception_handler(self.handle_get_logs))
-        self.app.route('/api/model/<int:model_idx>/status')(exception_handler(self.handle_get_status))
+        self.app.route('/api/model/stop', methods=['POST'])(exception_handler(self.handle_stop_model))
+        self.app.route('/api/model/logs')(exception_handler(self.handle_get_logs))
+        self.app.route('/api/model/status')(exception_handler(self.handle_get_status))
         self.app.route('/api/running_models')(exception_handler(self.handle_get_running_models))
 
-    def handle_get_status(self, model_idx):
-        if 0 <= model_idx < len(self.running_models):
+    def handle_get_status(self):
+        model_idx = request.args.get('idx', type=int)
+        if model_idx is not None and 0 <= model_idx < len(self.running_models):
             return jsonify(self.running_models[model_idx].status())
         return jsonify({'success': False, 'error': 'Model not found'}), 404
 
@@ -237,15 +238,17 @@ class ZooKeeper:
 
         return jsonify({'success': True})
 
-    def handle_stop_model(self, model_idx):
-        if 0 <= model_idx < len(self.running_models):
+    def handle_stop_model(self):
+        model_idx = request.args.get('idx', type=int)
+        if model_idx is not None and 0 <= model_idx < len(self.running_models):
             self.running_models[model_idx].stop()
             self.running_models.pop(model_idx)
             return jsonify({'success': True})
         return jsonify({'success': False, 'error': 'Model not found'}), 404
 
-    def handle_get_logs(self, model_idx):
-        if 0 <= model_idx < len(self.running_models):
+    def handle_get_logs(self):
+        model_idx = request.args.get('idx', type=int)
+        if model_idx is not None and 0 <= model_idx < len(self.running_models):
             return jsonify(self.running_models[model_idx].logs())
         return jsonify({'success': False, 'error': 'Model not found'}), 404
 
