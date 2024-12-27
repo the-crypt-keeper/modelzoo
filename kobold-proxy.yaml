@@ -1,0 +1,44 @@
+model_list:
+  - model_name: "flux-hyp8-Q8_0"
+    litellm_params:
+      model: "kobold/flux-hyp8-Q8_0"
+      api_base: "http://falcon:50665/"
+      timeout: 180
+    model_info:
+      mode: image_generation
+  # - model_name: "Qwen2-VL-7B-Instruct-AWQ"
+  #   litellm_params:
+  #     model: "openai//chia-ssd-0/ai/models/vision/Qwen2-VL-7B-Instruct-AWQ"
+  #     api_base: "http://localhost:51499/v1"
+  - model_name: "L3-8B-Stheno-v3.2-6.5bpw-h8-exl2"
+    litellm_params:
+      model: "openai/L3-8B-Stheno-v3.2-6.5bpw-h8-exl2"
+      api_base: "http://localhost:50199/v1"
+  # - model_name: "L3-8B-Stheno-v3.2-6.5bpw-h8-exl2"
+  #   litellm_params:
+  #     model: "openai/L3-8B-Stheno-v3.2-6.5bpw-h8-exl2"
+  #     api_base: "http://localhost:57384/v1"
+
+litellm_settings:
+  custom_provider_map:
+  - {"provider": "kobold", "custom_handler": kobold_handler.kobold_cpp}
+
+general_settings:
+  pass_through_endpoints:
+    - path: "/"
+      target: "http://localhost:3333"
+    - path: "/api/model/launch"
+      target: "http://localhost:3333/api/model/launch"
+    - path: "/api/model/stop"
+      target: "http://localhost:3333/api/model/stop"
+    - path: "/api/model/logs"
+      target: "http://localhost:3333/api/model/logs"
+    - path: "/api/model/status"
+      target: "http://localhost:3333/api/model/status"
+    - path: "/api/running_models"
+      target: "http://localhost:3333/api/model/launch"
+
+router_settings:
+  routing_strategy: "least-busy"
+  num_retries: 1
+  timeout: 90
