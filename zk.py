@@ -244,7 +244,9 @@ class ZooKeeper:
         return jsonify({'success': True})
 
     def handle_stop_model(self):
-        model_idx = request.args.get('idx', type=int)
+        data = request.get_json()
+        model_idx = data.get('idx')
+        model_idx = int(model_idx) if model_idx is not None else None
         if model_idx is not None and 0 <= model_idx < len(self.running_models):
             self.running_models[model_idx].stop()
             self.running_models.pop(model_idx)

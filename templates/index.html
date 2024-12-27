@@ -520,8 +520,14 @@
         }
 
         function stopModel(idx) {
-            $.post(`/api/model/stop?idx=${idx}`, function() {
-                location.reload();
+            $.ajax({
+                url: '/api/model/stop',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ idx: idx }),
+                success: function() {
+                    location.reload();
+                }
             });
         }
     </script>
