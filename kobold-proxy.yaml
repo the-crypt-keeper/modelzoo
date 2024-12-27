@@ -1,8 +1,15 @@
 model_list:
-  - model_name: "flux-hyp8-Q8_0"
+  - model_name: "flux-hyp8-Q8_0-kobold"
     litellm_params:
       model: "kobold/flux-hyp8-Q8_0"
-      api_base: "http://falcon:50665/"
+      api_base: "http://falcon:58605/"
+      timeout: 180
+    model_info:
+      mode: image_generation
+  - model_name: "flux-hyp8-Q8_0-sdserver"
+    litellm_params:
+      model: "sdserver/flux-hyp8-Q8_0"
+      api_base: "http://falcon:58301/"
       timeout: 180
     model_info:
       mode: image_generation
@@ -22,6 +29,7 @@ model_list:
 litellm_settings:
   custom_provider_map:
   - {"provider": "kobold", "custom_handler": kobold_handler.kobold_cpp}
+  - {"provider": "sdserver", "custom_handler": kobold_handler.sd_server}
 
 general_settings:
   pass_through_endpoints:
