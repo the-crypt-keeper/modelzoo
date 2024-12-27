@@ -173,7 +173,7 @@ class ZooKeeper:
 
     def handle_get_status(self):
         data = request.get_json()
-        model_idx = data.get('idx')
+        model_idx = data.get('idx', type=int)
         if model_idx is not None and 0 <= model_idx < len(self.running_models):
             return jsonify({
                 'success': True,
