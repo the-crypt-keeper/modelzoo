@@ -66,26 +66,30 @@ class ProxyServer:
          return jsonify(image_models)
      
      def handle_completions(self):
-         return self._handle_request(PROTOCOLS['openai']['completions'])
+         if not request.is_json:
+             return jsonify({"error": "Request must be JSON"}), 400
+         return self._handle_request('completions')
 
      def handle_chat_completions(self):
-         return self._handle_request(PROTOCOLS['openai']['chat_completions'])
+         if not request.is_json:
+             return jsonify({"error": "Request must be JSON"}), 400
+         return self._handle_request('chat_completions')
 
      def handle_txt2img(self):
-         if not request.is_json: return jsonify({"error": "Request must be JSON"}), 400
+         if not request.is_json:
+             return jsonify({"error": "Request must be JSON"}), 400
          data = request.get_json()
-         if 'prompt' not in data: return jsonify({"error": "prompt is required"}), 400
-         
-         # TODO: middleware for other txt2providers here
-         
-         return self._handle_request(PROTOCOLS['a1111']['txt2img'], data)
+         if 'prompt' not in data:
+             return jsonify({"error": "prompt is required"}), 400
+         return self._handle_request('txt2img')
 
      def handle_img2img(self):
-         if not request.is_json: return jsonify({"error": "Request must be JSON"}), 400
+         if not request.is_json:
+             return jsonify({"error": "Request must be JSON"}), 400
          data = request.get_json()
-         if 'prompt' not in data: return jsonify({"error": "prompt is required"}), 400
-                     
-         return self._handle_request(PROTOCOLS['a1111']['img2img'], data)
+         if 'prompt' not in data:
+             return jsonify({"error": "prompt is required"}), 400
+         return self._handle_request('img2img')
 
      def health_check(self):
          # Check local running models
@@ -112,10 +116,9 @@ class ProxyServer:
              }
          })
 
-     def _handle_request(self, endpoint, data=None):
+     def _handle_request(self, endpoint_type):
         try:
-            if data is None:
-                data = request.get_json()
+            data = request.get_json()
             model_name = data.get('model')
             if not model_name:
                 return jsonify({"error": "Model not specified in the request"}), 400
@@ -127,6 +130,14 @@ class ProxyServer:
             available_models = self.zookeeper.get_available_models()
             for model in available_models:
                 if model['model_name'] == model_name:
+                    protocol = model['listener']['protocol']
+                    if protocol not in PROTOCOLS:
+                        continue
+                    
+                    endpoint = PROTOCOLS[protocol][endpoint_type]
+                    if not endpoint:  # Protocol doesn't support this endpoint
+                        continue
+                        
                     host = model['listener']['host']
                     port = model['listener']['port']
                     model_instances.append({
