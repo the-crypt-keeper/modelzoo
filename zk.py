@@ -275,34 +275,85 @@ class ZooKeeper:
             })
         return jsonify({'running_models': running_models})
 
+    def get_available_models(self, local_models: bool = True, remote_models: bool = True) -> List[Dict]:
+        """Get a unified list of available models from both local and remote sources.
+        
+        Args:
+            local_models: Whether to include local running models
+            remote_models: Whether to include models from peer servers
+        
+        Returns:
+            List of model dictionaries with consistent structure:
+            {
+                'model_name': str,
+                'model_id': str,
+                'status': dict,
+                'listener': {
+                    'protocol': str,
+                    'host': str,
+                    'port': int
+                },
+                'source': str  # 'local' or 'remote:hostname'
+            }
+        """
+        available_models = []
+        
+        # Add local models
+        if local_models:
+            for rmodel in self.running_models:
+                if rmodel.status()['ready']:
+                    available_models.append({
+                        'model_name': rmodel.model.model_name,
+                        'model_id': rmodel.model.model_id,
+                        'status': rmodel.status(),
+                        'listener': {
+                            'protocol': rmodel.listener.protocol,
+                            'host': '127.0.0.1',
+                            'port': rmodel.listener.port
+                        },
+                        'source': 'local'
+                    })
+        
+        # Add remote models
+        if remote_models:
+            for peer in self.peers:
+                try:
+                    response = requests.get(
+                        f"http://{peer['host']}:{peer['port']}/api/running_models", 
+                        timeout=5
+                    )
+                    response.raise_for_status()
+                    
+                    peer_models = response.json().get('running_models', [])
+                    for model in peer_models:
+                        model['listener']['host'] = peer['host']
+                        model['source'] = f"remote:{peer['host']}"
+                        available_models.append(model)
+                        
+                except Exception as e:
+                    print(f"Error fetching models from peer {peer['host']}:{peer['port']}: {str(e)}")
+        
+        return available_models
+
+    def get_running_models(self):
+        return self.get_available_models(local_models=True, remote_models=False)
+
     def get_remote_models(self):
         remote_models = []
         for peer in self.peers:
+            peer_info = {
+                'host': peer['host'],
+                'port': peer['port'],
+                'models': [],
+                'error': None
+            }
+            
             try:
-                response = requests.get(f"http://{peer['host']}:{peer['port']}/api/running_models", timeout=5)
-                response.raise_for_status()
-                
-                peer_models = response.json().get('running_models', [])
-                for model in peer_models:
-                    model['listener']['host'] = peer['host']  # Replace with the peer's host
-                    
-                remote_models.append({
-                    'host': peer['host'],
-                    'port': peer['port'],
-                    'models': peer_models,
-                    'error': None
-                })
-                    
+                models = self.get_available_models(local_models=False, remote_models=True)
+                peer_info['models'] = [m for m in models if m['source'] == f"remote:{peer['host']}"]
             except Exception as e:
-                print(f"Error fetching models from peer {peer['host']}:{peer['port']}: {str(e)}")
+                peer_info['error'] = str(e)
                 
-                remote_models.append({
-                    'host': peer['host'],
-                    'port': peer['port'],
-                    'error': str(e),
-                    'models': []
-                })                
+            remote_models.append(peer_info)
+                    
         return remote_models
-
-    def get_running_models(self):
-        return [model for model in self.running_models if model.status()['ready']]
