@@ -13,12 +13,17 @@ class ProxyServer:
          self.setup_routes()
 
      def setup_routes(self):
+         # OpenAI API routes
          self.app.route('/v1/models', methods=['GET'])(self.get_models)
          self.app.route('/v1/completions', methods=['POST'])(self.handle_completions)
          self.app.route('/v1/chat/completions', methods=['POST'])(self.handle_chat_completions)
          self.app.route('/v1/images/generations', methods=['POST'])(self.handle_image_generation)
          self.app.route('/health', methods=['GET'])(self.health_check)
          self.app.route('/.well-known/serviceinfo', methods=['GET'])(self.service_info)
+         
+         # A1111 API routes
+         self.app.route('/sdapi/v1/sd-models', methods=['GET'])(self.get_sd_models)
+         self.app.route('/sdapi/v1/txt2img', methods=['POST'])(self.handle_txt2img)
 
      def get_models(self):
          unique_models = {}
@@ -54,6 +59,42 @@ class ProxyServer:
          # Check local running models
          if len(self.zookeeper.get_running_models()) > 0:
              return '', 200
+
+     def get_sd_models(self):
+         """Return list of available SD models in A1111 format"""
+         image_models = []
+         
+         # Add local models
+         for rmodel in self.zookeeper.get_running_models():
+             if rmodel.model.capabilities.get('image'):
+                 image_models.append({
+                     "title": rmodel.model.model_name,
+                     "model_name": rmodel.model.model_name,
+                     "hash": "0000000000", # Placeholder
+                     "sha256": "0" * 64,  # Placeholder
+                     "filename": rmodel.model.path if hasattr(rmodel.model, 'path') else "",
+                     "config": None
+                 })
+         
+         # Add remote models
+         for peer in self.zookeeper.get_remote_models():
+             if peer['error'] is None:
+                 for remote_model in peer['models']:
+                     if remote_model.get('capabilities', {}).get('image'):
+                         image_models.append({
+                             "title": remote_model['model_name'],
+                             "model_name": remote_model['model_name'],
+                             "hash": "0000000000", # Placeholder
+                             "sha256": "0" * 64,  # Placeholder
+                             "filename": remote_model.get('path', ""),
+                             "config": None
+                         })
+         
+         return jsonify(image_models)
+
+     def handle_txt2img(self):
+         """Handle txt2img requests by proxying to appropriate backend"""
+         return self._handle_request('/sdapi/v1/txt2img')
 
      def service_info(self):
          """Return service information according to the serviceinfo spec."""
