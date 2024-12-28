@@ -103,9 +103,7 @@ class LlamaRuntime(Runtime):
         if extra_args:
             cmd.extend(extra_args.split())
 
-        # Set OpenAI protocol for API compatibility
-        listener.protocol = 'openai'
-        
+        listener.protocol = 'openai'        
         return RunningModel(
             runtime=self,
             model=model,
@@ -211,6 +209,7 @@ echo env: $CUDA_VISIBLE_DEVICES $CUDA_DEVICE_ORDER
 {vllm_cmd}
 """)
         os.chmod(script_path, 0o755)
+        listener.protocol = 'openai'
         return RunningModel(
             runtime=self,
             model=model,
@@ -281,6 +280,7 @@ class LlamaSrbRuntime(Runtime):
         # Get the directory containing the script
         working_dir = os.path.dirname(os.path.abspath(self.script_path))
 
+        listener.protocol = 'openai'
         return RunningModel(
             runtime=self,
             model=model,
@@ -365,7 +365,7 @@ class LiteLLMRuntime(Runtime):
 
         # Prepare extra environment variables
         extra_env = {"OPENAI_API_KEY": model.api_key} if model.api_key else {}
-
+        listener.protocol = 'openai'
         return RunningModel(
             runtime=self,
             model=model,
@@ -773,6 +773,7 @@ class TabbyRuntime(Runtime):
         if extra_args:
             cmd.extend(extra_args.split())
 
+        listener.protocol = 'openai'
         return RunningModel(
             runtime=self,
             model=model,
