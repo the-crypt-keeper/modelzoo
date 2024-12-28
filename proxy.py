@@ -3,7 +3,7 @@ import requests
 from werkzeug.exceptions import ClientDisconnected
 from threading import Lock
 from collections import defaultdict
-from protocols import PROTOCOLS_TEXT, PROTOCOLS_IMAGE
+from protocols import PROTOCOLS, PROTOCOLS_TEXT, PROTOCOLS_IMAGE
 
 class ProxyServer:
      def __init__(self, zookeeper):
@@ -62,10 +62,10 @@ class ProxyServer:
          return jsonify(image_models)
      
      def handle_completions(self):
-         return self._handle_request('/v1/completions')
+         return self._handle_request(PROTOCOLS['openai']['completions'])
 
      def handle_chat_completions(self):
-         return self._handle_request('/v1/chat/completions')
+         return self._handle_request(PROTOCOLS['openai']['chat_completions'])
 
      def handle_image_generation(self):
          return self._handle_request('/v1/images/generations')
@@ -73,7 +73,7 @@ class ProxyServer:
      def health_check(self):
          # Check local running models
          if len(self.zookeeper.get_available_models(local_models=True, remote_models=False)) > 0:
-             return '', 200
+             return '', PROTOCOLS['openai']['health_status']
 
      def handle_txt2img(self):
          if not request.is_json: return jsonify({"error": "Request must be JSON"}), 400
@@ -82,14 +82,14 @@ class ProxyServer:
          
          # TODO: middleware for other txt2providers here
          
-         return self._handle_request('/sdapi/v1/txt2img', data)
+         return self._handle_request(PROTOCOLS['a1111']['txt2img'], data)
 
      def handle_img2img(self):
          if not request.is_json: return jsonify({"error": "Request must be JSON"}), 400
          data = request.get_json()
          if 'prompt' not in data: return jsonify({"error": "prompt is required"}), 400
                      
-         return self._handle_request('/sdapi/v1/img2img', data)
+         return self._handle_request(PROTOCOLS['a1111']['img2img'], data)
 
      def service_info(self):
          """Return service information according to the serviceinfo spec."""

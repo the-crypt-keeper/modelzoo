@@ -103,7 +103,7 @@ class LlamaRuntime(Runtime):
         if extra_args:
             cmd.extend(extra_args.split())
 
-        listener.protocol = 'openai'        
+        listener.protocol = 'openai'
         return RunningModel(
             runtime=self,
             model=model,
@@ -646,7 +646,7 @@ class SDServerRuntime(Runtime):
         cmd.extend(["--cfg-scale", str(param_list.get("cfg_scale", 1.0))])
         cmd.extend(["-p", param_list.get("default_prompt", "default prompt")])
 
-        listener.protocol = 'a1111'        
+        listener.protocol = 'a1111'
         return RunningModel(
             runtime=self,
             model=model,
