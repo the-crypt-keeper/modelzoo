@@ -51,7 +51,7 @@ class ProxyServer:
 
      def health_check(self):
          # Check local running models
-         if len(self.zookeeper.get_running_models()) > 0:
+         if len(self.zookeeper.get_available_models(local_models=True, remote_models=False)) > 0:
              return '', 200
 
      def get_sd_models(self):
@@ -118,25 +118,16 @@ class ProxyServer:
             # Get all available instances of the requested model
             model_instances = []
             
-            # Check local running models
-            running_models = self.zookeeper.get_running_models()
-            local_instances = [m for m in running_models if m.model.model_name == model_name]
-            for model in local_instances:
-                model_instances.append({
-                    'model_name': model.model.model_name,
-                    'url': f"http://{model.listener.host}:{model.listener.port}{endpoint}"
-                })
-            
-            # Check remote models
-            remote_models = self.zookeeper.get_remote_models()
-            for peer in remote_models:
-                if peer['error'] is None:
-                    for remote_model in peer['models']:
-                        if remote_model['model_name'] == model_name:
-                            model_instances.append({
-                                'model_name': remote_model['model_name'],
-                                'url': f"http://{remote_model['listener']['host']}:{remote_model['listener']['port']}{endpoint}"
-                            })
+            # Get all available model instances
+            available_models = self.zookeeper.get_available_models(local_models=True, remote_models=True)
+            for model in available_models:
+                if model['model_name'] == model_name:
+                    host = model['listener']['host']
+                    port = model['listener']['port']
+                    model_instances.append({
+                        'model_name': model['model_name'],
+                        'url': f"http://{host}:{port}{endpoint}"
+                    })
             
             if not model_instances:
                 return jsonify({"error": f"Model {model_name} not found or not running"}), 404

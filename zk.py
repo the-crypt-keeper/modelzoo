@@ -327,25 +327,3 @@ class ZooKeeper:
         
         return available_models
 
-    def get_running_models(self):
-        return self.get_available_models(local_models=True, remote_models=False)
-
-    def get_remote_models(self):
-        remote_models = []
-        for peer in self.peers:
-            peer_info = {
-                'host': peer['host'],
-                'port': peer['port'],
-                'models': [],
-                'error': None
-            }
-            
-            try:
-                models = self.get_available_models(local_models=False, remote_models=True)
-                peer_info['models'] = [m for m in models if m['source'] == f"remote:{peer['host']}"]
-            except Exception as e:
-                peer_info['error'] = str(e)
-                
-            remote_models.append(peer_info)
-                    
-        return remote_models
