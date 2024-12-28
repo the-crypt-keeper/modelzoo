@@ -213,44 +213,32 @@
 
         <div class="running-list">
             <h2>Running Models</h2>
-            {% for running in running_models %}
+            {% for model in available_models %}
             <div class="running-model" data-index="{{ loop.index0 }}">
                 <h3>
-                    <span class="status-indicator {{ 'status-ready' if running.status()['ready'] else 'status-starting' if running.status()['running'] else 'status-stopped' }}"></span>
-                    {{ running.model.model_name }}
+                    <span class="status-indicator {{ 'status-ready' if model.status.ready else 'status-starting' if model.status.running else 'status-stopped' }}"></span>
+                    {{ model.model_name }}
+                    {% if model.source != 'local' %}
+                    <small>({{ model.source }})</small>
+                    {% endif %}
+                    <small>[{{ model.environment }}]</small>
                 </h3>
-                <p>{{ running.listener }} via <i>{{ running.runtime.runtime_name }}</i> on <i>{{ running.environment.name }}</i></p>
-                <button onclick="toggleLogs({{ loop.index0 }})">Show/Hide Logs</button>
-                <button onclick="window.open(`http://${window.location.hostname}:{{ running.listener.port }}`, '_blank')">Open</button>
-                <button onclick="stopModel({{ loop.index0 }})">Stop</button>
-                <div class="logs" id="logs-{{ loop.index0 }}" style="display: {{ 'block' if not running.status()['ready'] else 'none' }};"></div>
+                <p>{{ model.listener.protocol }} on <i>{{ model.listener.host }}:{{ model.listener.port }}</i></p>
+                <div class="model-controls">
+                    {% if model.source == 'local' %}
+                    <button onclick="window.open(`${window.location.protocol}//${window.location.hostname}:{{ model.listener.port }}`, '_blank')">Open</button>
+                    {% else %}
+                    <button onclick="window.open(`${window.location.protocol}//{{ model.listener.host }}:{{ model.listener.port }}`, '_blank')">Open</button>
+                    {% endif %}
+                    {% if model.source == 'local' %}
+                    <button onclick="toggleLogs({{ loop.index0 }})">Show/Hide Logs</button>
+                    <button onclick="stopModel({{ loop.index0 }})">Stop</button>
+                    <div class="logs" id="logs-{{ loop.index0 }}" style="display: none;"></div>
+                    {% endif %}
+                </div>
             </div>
             {% endfor %}
         </div>
-        
-        {% for peer in remote_models %}
-        <div class="running-list remote-peer">
-            <h2>
-                <span class="status-indicator {{ 'status-ready' if peer.error is none else 'status-stopped' }}"></span>
-                Remote Models: {{ peer.host }}
-                {% if peer.error is none %}
-                    <button onclick="window.open('http://{{ peer.host }}:{{ peer.port }}/', '_blank')">Manage</button>
-                {% endif %}
-            </h2>
-            {% if peer.error is none %}
-                {% for model in peer.models %}
-                <div class="remote-model">
-                    <h4>
-                        <span class="status-indicator {{ 'status-ready' if model.status.ready else 'status-starting' if model.status.running else 'status-stopped' }}"></span>
-                        {{ model.model_name }} on <i>{{ model.listener.host }}:{{ model.listener.port }}</i>
-                    </h4>
-                </div>
-                {% endfor %}
-            {% else %}
-                <p class="error-message">Error: {{ peer.error }}</p>
-            {% endif %}
-        </div>
-        {% endfor %}
 
 
     <script>
@@ -440,14 +428,15 @@
             $.ajax({
                 url: '/api/model/launch',
                 method: 'POST',
-                data: {
+                contentType: 'application/json',
+                data: JSON.stringify({
                     zoo_name: zooName,
                     model_id: modelId,
                     runtime: runtime,
                     environment: env,
                     port: parseInt(port, 10),
-                    params: JSON.stringify(params)
-                },
+                    params: params
+                }),
                 success: function() {
                     $('#launch-dialog').hide();
                     location.reload();
@@ -479,21 +468,44 @@
             if (!window.logPollers) window.logPollers = {};
             
             function updateStatusAndLogs() {
-                $.get(`/api/model/${idx}/logs`, function(logs) {
-                    $(`#logs-${idx}`).html(logs.reverse().join('<br>'));
+                // Get the running model element
+                const runningModel = $(`#logs-${idx}`).closest('.running-model');
+                
+                // Only proceed if this is a local model
+                if (runningModel.find('.model-controls').length === 0) {
+                    return; // This is a remote model, don't update
+                }
+                
+                $.ajax({
+                    url: '/api/model/logs',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ idx: idx }),
+                    success: function(response) {
+                        if (response.success) {
+                            $(`#logs-${idx}`).html(response.logs.reverse().join('<br>'));
+                        }
+                    }
                 });
 
-                $.get(`/api/model/${idx}/status`, function(status) {
-                    const runningModel = $(`#logs-${idx}`).closest('.running-model');
-                    const statusIndicator = runningModel.find('.status-indicator');
-                    
-                    statusIndicator.removeClass('status-ready status-starting status-stopped');
-                    if (status.ready) {
-                        statusIndicator.addClass('status-ready');
-                    } else if (status.running) {
-                        statusIndicator.addClass('status-starting');
-                    } else {
-                        statusIndicator.addClass('status-stopped');
+                $.ajax({
+                    url: '/api/model/status',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ idx: idx }),
+                    success: function(response) {
+                        if (!response.success) return;
+                        const status = response.status;
+                        const statusIndicator = runningModel.find('.status-indicator');
+                        
+                        statusIndicator.removeClass('status-ready status-starting status-stopped');
+                        if (status.ready) {
+                            statusIndicator.addClass('status-ready');
+                        } else if (status.running) {
+                            statusIndicator.addClass('status-starting');
+                        } else {
+                            statusIndicator.addClass('status-stopped');
+                        }
                     }
                 });
             }
@@ -503,8 +515,14 @@
         }
 
         function stopModel(idx) {
-            $.post(`/api/model/${idx}/stop`, function() {
-                location.reload();
+            $.ajax({
+                url: '/api/model/stop',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ idx: idx }),
+                success: function() {
+                    location.reload();
+                }
             });
         }
     </script>

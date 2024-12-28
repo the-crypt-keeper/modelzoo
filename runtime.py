@@ -1,5 +1,7 @@
 import os
 import tempfile
+import json
+from pathlib import Path
 from base import *
 from typing import Any, List, Dict
 
@@ -101,6 +103,7 @@ class LlamaRuntime(Runtime):
         if extra_args:
             cmd.extend(extra_args.split())
 
+        listener.protocol = 'openai'
         return RunningModel(
             runtime=self,
             model=model,
@@ -206,6 +209,7 @@ echo env: $CUDA_VISIBLE_DEVICES $CUDA_DEVICE_ORDER
 {vllm_cmd}
 """)
         os.chmod(script_path, 0o755)
+        listener.protocol = 'openai'
         return RunningModel(
             runtime=self,
             model=model,
@@ -276,6 +280,7 @@ class LlamaSrbRuntime(Runtime):
         # Get the directory containing the script
         working_dir = os.path.dirname(os.path.abspath(self.script_path))
 
+        listener.protocol = 'openai'
         return RunningModel(
             runtime=self,
             model=model,
@@ -360,7 +365,7 @@ class LiteLLMRuntime(Runtime):
 
         # Prepare extra environment variables
         extra_env = {"OPENAI_API_KEY": model.api_key} if model.api_key else {}
-
+        listener.protocol = 'openai'
         return RunningModel(
             runtime=self,
             model=model,
@@ -482,8 +487,18 @@ class KoboldCppRuntime(Runtime):
         # set working dir to where the model is (for kcppt)
         working_dir = os.path.dirname(os.path.abspath(model.model_id))
         
-        # Tell the proxy that this is a kobold endpoint
-        listener.protocol = 'kobold'
+        # Set protocol based on model type and configuration
+        if model.model_format == "kcppt":
+            # Load and parse the checkpoint file
+            with open(model.model_id, 'r') as f:
+                config = json.load(f)
+            # If it has an SD model, it's an SD checkpoint
+            if config.get('sdmodel'):
+                listener.protocol = 'a1111'
+            else:
+                listener.protocol = 'openai'
+        else:
+            listener.protocol = 'openai'
 
         return RunningModel(
             runtime=self,            
@@ -492,6 +507,152 @@ class KoboldCppRuntime(Runtime):
             listener=listener,
             command=cmd,
             working_directory=working_dir
+        )
+
+class SDServerRuntime(Runtime):
+    """Runtime implementation for SD Server."""
+
+    def __init__(self, name: str, bin_path: str):
+        """Initialize SDServerRuntime with path to sd-server binary.
+        
+        Args:
+            name (str): Name of the runtime
+            bin_path (str): Path to sd-server executable
+        """
+        self.runtime_name = name
+        self.runtime_formats = ["kcppt"]
+        self.bin_path = bin_path
+        
+        # Define available parameters
+        self.runtime_params = [
+            RuntimeParameter(
+                param_name="cfg_scale",
+                param_description="CFG Scale",
+                param_type="float",
+                param_default=1.0
+            ),
+            RuntimeParameter(
+                param_name="sampling_method",
+                param_description="Sampling method",
+                param_type="enum",
+                param_default="Euler",
+                param_enum={
+                    "Euler": "euler",
+                    "Euler a": "euler_a", 
+                    "Heun": "heun",
+                    "DPM2": "dpm2",
+                    "DPM++ 2M": "dpmpp_2m",
+                    "LCM": "lcm"
+                }
+            ),
+            RuntimeParameter(
+                param_name="default_prompt",
+                param_description="Default prompt",
+                param_type="str",
+                param_default="default prompt"
+            )
+        ]
+
+    def _get_model_path(self, model_file: str, base_dir: str) -> str:
+        """Get the full path for a model file.
+        
+        Args:
+            model_file (str): Model file or URL
+            base_dir (str): Base directory to look for local files
+            
+        Returns:
+            str: Full path to the model file
+        """
+        if not model_file:
+            return ""
+            
+        # Extract filename from URL if needed
+        filename = model_file.split('/')[-1].split('?')[0]
+        
+        # First check if model_file is an absolute path
+        abs_path = Path(model_file)
+        if abs_path.is_absolute() and abs_path.exists():
+            return str(abs_path)
+
+        # Then check relative to base directory
+        model_path = Path(base_dir) / filename
+        if model_path.exists():
+            return str(model_path)
+            
+        return ""
+
+    def spawn(self, 
+              environment: Environment, 
+              listener: Listener, 
+              model: Model, 
+              param_list: dict[str, Any]) -> RunningModel:
+        """Spawn a SD Server instance.
+        
+        Args:
+            environment (Environment): Environment configuration
+            listener (Listener): Network binding configuration
+            model (Model): Model to serve
+            param_list (Dict[str, Any]): Runtime parameters
+
+        Returns:
+            RunningModel: Handle to the running instance
+        """
+        if model.model_format not in self.runtime_formats:
+            raise ValueError(f"Unsupported model format: {model.model_format}")
+
+        # Load and parse the checkpoint file
+        with open(model.model_id, 'r') as f:
+            config = json.load(f)
+            
+        # Get the base directory for resolving relative paths
+        base_dir = os.path.dirname(os.path.abspath(model.model_id))
+        
+        # Build command line
+        cmd = [
+            self.bin_path,
+            "--host", listener.host,
+            "--port", str(listener.port),
+            "-v"
+        ]
+        
+        # Add required diffusion model
+        diffusion_model = self._get_model_path(config.get('sdmodel'), base_dir)
+        if not diffusion_model:
+            raise ValueError("No diffusion model specified in checkpoint")
+        
+        if 'flux' in diffusion_model:
+            cmd.extend(["--diffusion-model", diffusion_model])
+        else:
+            cmd.extend(["-m", diffusion_model])
+        
+        # Add optional models if present
+        if config.get('sdt5xxl'):
+            t5xxl = self._get_model_path(config.get('sdt5xxl'), base_dir)        
+            cmd.extend(["--t5xxl", t5xxl])
+        
+        if config.get('sdclipl'):
+            clip_l = self._get_model_path(config.get('sdclipl'), base_dir)
+            cmd.extend(["--clip_l", clip_l])
+        
+        if config.get('sdvae'):
+            vae = self._get_model_path(config.get('sdvae'), base_dir)
+            cmd.extend(["--vae", vae])
+
+        # Add runtime parameters
+        sampling_param = next(param for param in self.runtime_params if param.param_name == "sampling_method")
+        sampling_value = sampling_param.param_enum[param_list.get("sampling_method", "Euler")]
+        cmd.extend(["--sampling-method", sampling_value])
+        
+        cmd.extend(["--cfg-scale", str(param_list.get("cfg_scale", 1.0))])
+        cmd.extend(["-p", param_list.get("default_prompt", "default prompt")])
+
+        listener.protocol = 'sd-server'
+        return RunningModel(
+            runtime=self,
+            model=model,
+            environment=environment,
+            listener=listener,
+            command=cmd
         )
 
 class TabbyRuntime(Runtime):
@@ -612,6 +773,7 @@ class TabbyRuntime(Runtime):
         if extra_args:
             cmd.extend(extra_args.split())
 
+        listener.protocol = 'openai'
         return RunningModel(
             runtime=self,
             model=model,

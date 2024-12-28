@@ -6,6 +6,7 @@ from collections import deque
 import requests
 import os
 import signal
+from protocols import PROTOCOLS
 
 class Runtime:
     pass
@@ -169,8 +170,20 @@ class RunningModel:
             bool: True if server is ready, False otherwise
         """
         try:
-            response = requests.get(f"http://{self.listener.host}:{self.listener.port}/v1/models", timeout=2)
-            return response.status_code == 200
+            protocol = self.listener.protocol               
+            protocol_def = PROTOCOLS.get(protocol, {})
+            
+            health_check = protocol_def.get('health_check')
+            health_status = protocol_def.get('health_status', 200)
+            
+            if not health_check:
+                return False
+                
+            response = requests.get(
+                f"http://{self.listener.host}:{self.listener.port}{health_check}", 
+                timeout=2
+            )
+            return response.status_code == health_status
         except requests.RequestException:
             return False
 
