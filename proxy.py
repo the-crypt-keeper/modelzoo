@@ -14,13 +14,14 @@ class ProxyServer:
          self.setup_routes()
 
      def setup_routes(self):
+         # Health and Identity
+         self.app.route('/health', methods=['GET'])(self.health_check)
+         self.app.route('/.well-known/serviceinfo', methods=['GET'])(self.service_info)
+
          # OpenAI API routes
          self.app.route('/v1/models', methods=['GET'])(self.get_models)
          self.app.route('/v1/completions', methods=['POST'])(self.handle_completions)
          self.app.route('/v1/chat/completions', methods=['POST'])(self.handle_chat_completions)
-         self.app.route('/v1/images/generations', methods=['POST'])(self.handle_image_generation)
-         self.app.route('/health', methods=['GET'])(self.health_check)
-         self.app.route('/.well-known/serviceinfo', methods=['GET'])(self.service_info)
          
          # A1111 API routes
          self.app.route('/sdapi/v1/sd-models', methods=['GET'])(self.get_sd_models)
@@ -70,14 +71,6 @@ class ProxyServer:
      def handle_chat_completions(self):
          return self._handle_request(PROTOCOLS['openai']['chat_completions'])
 
-     def handle_image_generation(self):
-         return self._handle_request('/v1/images/generations')
-
-     def health_check(self):
-         # Check local running models
-         if len(self.zookeeper.get_available_models(local_models=True, remote_models=False)) > 0:
-             return '', PROTOCOLS['openai']['health_status']
-
      def handle_txt2img(self):
          if not request.is_json: return jsonify({"error": "Request must be JSON"}), 400
          data = request.get_json()
@@ -93,6 +86,11 @@ class ProxyServer:
          if 'prompt' not in data: return jsonify({"error": "prompt is required"}), 400
                      
          return self._handle_request(PROTOCOLS['a1111']['img2img'], data)
+
+     def health_check(self):
+         # Check local running models
+         if len(self.zookeeper.get_available_models(local_models=True, remote_models=False)) > 0:
+             return '', PROTOCOLS['openai']['health_status']
 
      def service_info(self):
          """Return service information according to the serviceinfo spec."""
