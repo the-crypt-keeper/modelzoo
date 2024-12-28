@@ -606,7 +606,11 @@ class SDServerRuntime(Runtime):
         diffusion_model = self._get_model_path(config.get('sdmodel'), base_dir)
         if not diffusion_model:
             raise ValueError("No diffusion model specified in checkpoint")
-        cmd.extend(["--diffusion-model", diffusion_model])
+        
+        if 'flux' in diffusion_model:
+            cmd.extend(["--diffusion-model", diffusion_model])
+        else:
+            cmd.extend(["-m", diffusion_model])
         
         # Add optional models if present
         if config.get('sdt5xxl'):
