@@ -68,12 +68,14 @@ class ProxyServer:
      def handle_completions(self):
          if not request.is_json:
              return jsonify({"error": "Request must be JSON"}), 400
-         return self._handle_request('completions')
+         data = request.get_json()
+         return self._handle_request('completions', data)
 
      def handle_chat_completions(self):
          if not request.is_json:
              return jsonify({"error": "Request must be JSON"}), 400
-         return self._handle_request('chat_completions')
+         data = request.get_json()
+         return self._handle_request('chat_completions', data)
 
      def handle_txt2img(self):
          if not request.is_json:
@@ -81,7 +83,7 @@ class ProxyServer:
          data = request.get_json()
          if 'prompt' not in data:
              return jsonify({"error": "prompt is required"}), 400
-         return self._handle_request('txt2img')
+         return self._handle_request('txt2img', data)
 
      def handle_img2img(self):
          if not request.is_json:
@@ -89,7 +91,7 @@ class ProxyServer:
          data = request.get_json()
          if 'prompt' not in data:
              return jsonify({"error": "prompt is required"}), 400
-         return self._handle_request('img2img')
+         return self._handle_request('img2img', data)
 
      def health_check(self):
          # Check local running models
@@ -116,9 +118,8 @@ class ProxyServer:
              }
          })
 
-     def _handle_request(self, endpoint_type):
+     def _handle_request(self, endpoint_type, data):
         try:
-            data = request.get_json()
             model_name = data.get('model')
             if not model_name:
                 return jsonify({"error": "Model not specified in the request"}), 400
