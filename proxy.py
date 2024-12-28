@@ -20,13 +20,17 @@ class ProxyServer:
 
          # OpenAI API routes
          self.app.route('/v1/models', methods=['GET'])(self.get_models)
-         self.app.route('/v1/completions', methods=['POST'])(self.handle_completions)
-         self.app.route('/v1/chat/completions', methods=['POST'])(self.handle_chat_completions)
+         self.app.route('/v1/completions', methods=['POST'])(
+             lambda: self.handle_request('completions'))
+         self.app.route('/v1/chat/completions', methods=['POST'])(
+             lambda: self.handle_request('chat_completions'))
          
          # A1111 API routes
          self.app.route('/sdapi/v1/sd-models', methods=['GET'])(self.get_sd_models)
-         self.app.route('/sdapi/v1/txt2img', methods=['POST'])(self.handle_txt2img)
-         self.app.route('/sdapi/v1/img2img', methods=['POST'])(self.handle_img2img)
+         self.app.route('/sdapi/v1/txt2img', methods=['POST'])(
+             lambda: self.handle_request('txt2img', required_keys=['prompt']))
+         self.app.route('/sdapi/v1/img2img', methods=['POST'])(
+             lambda: self.handle_request('img2img', required_keys=['prompt']))
 
      def get_models(self):
          unique_models = {}
@@ -65,33 +69,24 @@ class ProxyServer:
          
          return jsonify(image_models)
      
-     def handle_completions(self):
+     def handle_request(self, endpoint_type, required_keys=None):
+         """Unified request handler for all endpoints.
+         
+         Args:
+             endpoint_type: The type of endpoint to handle (completions, chat_completions, etc)
+             required_keys: List of required keys in the request payload
+         """
          if not request.is_json:
              return jsonify({"error": "Request must be JSON"}), 400
+             
          data = request.get_json()
-         return self._handle_request('completions', data)
-
-     def handle_chat_completions(self):
-         if not request.is_json:
-             return jsonify({"error": "Request must be JSON"}), 400
-         data = request.get_json()
-         return self._handle_request('chat_completions', data)
-
-     def handle_txt2img(self):
-         if not request.is_json:
-             return jsonify({"error": "Request must be JSON"}), 400
-         data = request.get_json()
-         if 'prompt' not in data:
-             return jsonify({"error": "prompt is required"}), 400
-         return self._handle_request('txt2img', data)
-
-     def handle_img2img(self):
-         if not request.is_json:
-             return jsonify({"error": "Request must be JSON"}), 400
-         data = request.get_json()
-         if 'prompt' not in data:
-             return jsonify({"error": "prompt is required"}), 400
-         return self._handle_request('img2img', data)
+         
+         if required_keys:
+             missing_keys = [key for key in required_keys if key not in data]
+             if missing_keys:
+                 return jsonify({"error": f"Missing required keys: {', '.join(missing_keys)}"}), 400
+                 
+         return self._handle_request(endpoint_type, data)
 
      def health_check(self):
          # Check local running models
