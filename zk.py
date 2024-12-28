@@ -285,7 +285,8 @@ class ZooKeeper:
                     'host': str,
                     'port': int
                 },
-                'source': str  # 'local' or 'remote:hostname'
+                'source': str,  # 'local' or 'remote:hostname'
+                'environment': str  # name of the environment used to launch the model
             }
         """
         available_models = []
@@ -302,7 +303,8 @@ class ZooKeeper:
                         'host': '127.0.0.1',
                         'port': rmodel.listener.port
                     },
-                    'source': 'local'
+                    'source': 'local',
+                    'environment': rmodel.environment.name
                 })
         
         # Add remote models
