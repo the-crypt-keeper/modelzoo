@@ -3,10 +3,7 @@ import requests
 from werkzeug.exceptions import ClientDisconnected
 from threading import Lock
 from collections import defaultdict
-
-# Protocol lists for filtering models
-PROTOCOLS_TEXT = ['openai']
-PROTOCOLS_IMAGE = ['a1111']
+from protocols import PROTOCOLS_TEXT, PROTOCOLS_IMAGE
 
 class ProxyServer:
      def __init__(self, zookeeper):
