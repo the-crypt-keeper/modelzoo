@@ -94,24 +94,16 @@ class ProxyServer:
          return jsonify(image_models)
 
      def handle_txt2img(self):
-         """Handle txt2img requests by proxying to appropriate backend"""
-         if not request.is_json:
-             return jsonify({"error": "Request must be JSON"}), 400
-         
+         if not request.is_json: return jsonify({"error": "Request must be JSON"}), 400
          data = request.get_json()
-         if 'prompt' not in data:
-             return jsonify({"error": "prompt is required"}), 400
+         if 'prompt' not in data: return jsonify({"error": "prompt is required"}), 400
          
          return self._handle_request('/sdapi/v1/txt2img', data)
 
      def handle_img2img(self):
-         """Handle img2img requests by proxying to appropriate backend"""
-         if not request.is_json:
-             return jsonify({"error": "Request must be JSON"}), 400
-             
+         if not request.is_json: return jsonify({"error": "Request must be JSON"}), 400
          data = request.get_json()
-         if 'prompt' not in data:
-             return jsonify({"error": "prompt is required"}), 400
+         if 'prompt' not in data: return jsonify({"error": "prompt is required"}), 400
                      
          return self._handle_request('/sdapi/v1/img2img', data)
 
