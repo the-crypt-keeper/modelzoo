@@ -36,7 +36,7 @@ PROTOCOLS = {
             'Euler A': 'k_euler_a',
             'Heun': 'k_heun',
             'DPM2': 'k_dpm_2',
-            'DPM++ 2M': 'k_dpmpp_2m',
+            'DPM++': 'k_dpmpp_2m',
             'LCM': 'k_lcm'
         }
     },
@@ -54,7 +54,7 @@ PROTOCOLS = {
             'Euler A': 'euler_a', 
             'Heun': 'heun',
             'DPM2': 'dpm2',
-            'DPM++ 2M': 'dpmpp_2m',
+            'DPM++': 'dpmpp_2m',
             'LCM': 'lcm'
         }
     }
