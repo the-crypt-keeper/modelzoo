@@ -178,13 +178,10 @@ class ProxyServer:
             headers = {k: v for k, v in request.headers.items() if k.lower() != 'host'}
 
             # Determine if we should stream based on request
-            should_stream = data.get('stream', False)
-            
+            should_stream = data.get('stream', False)            
             resp = requests.post(target_url, json=data, headers=headers, stream=should_stream)
             content_type = resp.headers.get('Content-Type', 'application/json')
             
-            model_name = selected['model_name']  # Capture for closure
-
             if should_stream:
                 @stream_with_context
                 def generate():
