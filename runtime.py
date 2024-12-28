@@ -103,6 +103,9 @@ class LlamaRuntime(Runtime):
         if extra_args:
             cmd.extend(extra_args.split())
 
+        # Set OpenAI protocol for API compatibility
+        listener.protocol = 'openai'
+        
         return RunningModel(
             runtime=self,
             model=model,
@@ -484,8 +487,8 @@ class KoboldCppRuntime(Runtime):
         # set working dir to where the model is (for kcppt)
         working_dir = os.path.dirname(os.path.abspath(model.model_id))
         
-        # Tell the proxy that this is a kobold endpoint
-        listener.protocol = 'kobold'
+        # Set OpenAI protocol for API compatibility
+        listener.protocol = 'openai'
 
         return RunningModel(
             runtime=self,            
@@ -633,7 +636,7 @@ class SDServerRuntime(Runtime):
         cmd.extend(["--cfg-scale", str(param_list.get("cfg_scale", 1.0))])
         cmd.extend(["-p", param_list.get("default_prompt", "default prompt")])
 
-        listener.protocol = 'sd-server'        
+        listener.protocol = 'a1111'        
         return RunningModel(
             runtime=self,
             model=model,
