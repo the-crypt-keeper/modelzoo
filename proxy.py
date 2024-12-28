@@ -24,6 +24,7 @@ class ProxyServer:
          # A1111 API routes
          self.app.route('/sdapi/v1/sd-models', methods=['GET'])(self.get_sd_models)
          self.app.route('/sdapi/v1/txt2img', methods=['POST'])(self.handle_txt2img)
+         self.app.route('/sdapi/v1/img2img', methods=['POST'])(self.handle_img2img)
 
      def get_models(self):
          unique_models = {}
@@ -66,7 +67,7 @@ class ProxyServer:
          
          # Add local models
          for rmodel in self.zookeeper.get_running_models():
-             if rmodel.model.capabilities.get('image'):
+             if rmodel.listener.protocol == 'a1111':
                  image_models.append({
                      "title": rmodel.model.model_name,
                      "model_name": rmodel.model.model_name,
@@ -80,7 +81,7 @@ class ProxyServer:
          for peer in self.zookeeper.get_remote_models():
              if peer['error'] is None:
                  for remote_model in peer['models']:
-                     if remote_model.get('capabilities', {}).get('image'):
+                     if remote_model.get('listener', {}).get('protocol') == 'a1111':
                          image_models.append({
                              "title": remote_model['model_name'],
                              "model_name": remote_model['model_name'],
@@ -94,7 +95,46 @@ class ProxyServer:
 
      def handle_txt2img(self):
          """Handle txt2img requests by proxying to appropriate backend"""
-         return self._handle_request('/sdapi/v1/txt2img')
+         if not request.is_json:
+             return jsonify({"error": "Request must be JSON"}), 400
+         
+         data = request.get_json()
+         if 'prompt' not in data:
+             return jsonify({"error": "prompt is required"}), 400
+             
+         # Add any missing optional parameters with defaults
+         data.setdefault('negative_prompt', '')
+         data.setdefault('cfg_scale', 5)
+         data.setdefault('steps', 20)
+         data.setdefault('width', 512)
+         data.setdefault('height', 512)
+         data.setdefault('seed', -1)
+         data.setdefault('clip_skip', -1)
+         data.setdefault('sampler_name', 'Euler a')
+         
+         return self._handle_request('/sdapi/v1/txt2img', data)
+
+     def handle_img2img(self):
+         """Handle img2img requests by proxying to appropriate backend"""
+         if not request.is_json:
+             return jsonify({"error": "Request must be JSON"}), 400
+             
+         data = request.get_json()
+         if 'prompt' not in data:
+             return jsonify({"error": "prompt is required"}), 400
+             
+         # Add any missing optional parameters with defaults
+         data.setdefault('negative_prompt', '')
+         data.setdefault('cfg_scale', 5)
+         data.setdefault('steps', 20)
+         data.setdefault('width', 512)
+         data.setdefault('height', 512)
+         data.setdefault('seed', -1)
+         data.setdefault('clip_skip', -1)
+         data.setdefault('sampler_name', 'Euler a')
+         data.setdefault('init_images', [])
+         
+         return self._handle_request('/sdapi/v1/img2img', data)
 
      def service_info(self):
          """Return service information according to the serviceinfo spec."""
@@ -124,9 +164,10 @@ class ProxyServer:
                  
          return '', 500
 
-     def _handle_request(self, endpoint):
+     def _handle_request(self, endpoint, data=None):
         try:
-            data = request.get_json()
+            if data is None:
+                data = request.get_json()
             model_name = data.get('model')
             if not model_name:
                 return jsonify({"error": "Model not specified in the request"}), 400
