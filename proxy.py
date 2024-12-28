@@ -116,28 +116,25 @@ class ProxyServer:
      def _handle_request(self, endpoint_type, data):
         try:
             model_name = data.get('model')
-            if not model_name:
-                return jsonify({"error": "Model not specified in the request"}), 400
+            if not model_name: return jsonify({"error": "Model not specified in the request"}), 400
 
             # Get all available instances of the requested model
             model_instances = []
             
-            # Get all available model instances
+            # Get all available model instances, build potential endpoint map
             available_models = self.zookeeper.get_available_models()
             for model in available_models:
                 if model['model_name'] == model_name:
-                    protocol = model['listener']['protocol']
-                    if protocol not in PROTOCOLS:
-                        continue
-                    
-                    endpoint = PROTOCOLS[protocol][endpoint_type]
+                    protocol = model['listener']['protocol']                   
+                    endpoint = PROTOCOLS.get(protocol, {})[endpoint_type]
                     if not endpoint:  # Protocol doesn't support this endpoint
                         continue
-                        
+
                     host = model['listener']['host']
                     port = model['listener']['port']
                     model_instances.append({
                         'model_name': model['model_name'],
+                        'protocol': protocol,
                         'url': f"http://{host}:{port}{endpoint}"
                     })
             
@@ -149,14 +146,15 @@ class ProxyServer:
                 selected = min(model_instances, 
                              key=lambda x: self.active_connections[x['url']])
                 self.active_connections[selected['url']] += 1
+                
                 target_url = selected['url']
+                protocol = selected['protocol']
 
             headers = {k: v for k, v in request.headers.items() if k.lower() != 'host'}
             
             try:
                 # Apply sampler mapping if this is an image endpoint
                 if endpoint_type in ['txt2img', 'img2img'] and 'sampler_name' in data:
-                    protocol = model['listener']['protocol']
                     sampler_map = PROTOCOLS[protocol].get('image_sampler_map', {})
                     if data['sampler_name'] in sampler_map:
                         data['sampler_name'] = sampler_map[data['sampler_name']]
