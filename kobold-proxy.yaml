@@ -1,16 +1,22 @@
 model_list:
-  - model_name: "flux-hyp8-Q8_0-kobold"
+  - model_name: "sd_xl_turbo_1.0"
     litellm_params:
-      model: "kobold/flux-hyp8-Q8_0"
-      api_base: "http://falcon:59203/"
+      model: "sdserver/sd_xl_turbo_1.0"
+      api_base: "http://falcon:51524/"
     model_info:
       mode: image_generation
-  - model_name: "flux-hyp8-Q8_0-sdserver"
+  - model_name: "Deliberate_v2"
     litellm_params:
-      model: "sdserver/flux-hyp8-Q8_0"
-      api_base: "http://falcon:58301/"
+      model: "sdserver/Deliberate_v2"
+      api_base: "http://falcon:59275/"
     model_info:
       mode: image_generation
+  - model_name: "fluxunchained-schnell-dev-merge-q8-0"
+    litellm_params:
+      model: "sdserver/fluxunchained-schnell-dev-merge-q8-0"
+      api_base: "http://falcon:52247/"
+    model_info:
+      mode: image_generation  
   # - model_name: "Qwen2-VL-7B-Instruct-AWQ"
   #   litellm_params:
   #     model: "openai//chia-ssd-0/ai/models/vision/Qwen2-VL-7B-Instruct-AWQ"
@@ -23,17 +29,13 @@ model_list:
   #   litellm_params:
   #     model: "openai/L3-8B-Stheno-v3.2-6.5bpw-h8-exl2"
   #     api_base: "http://localhost:57384/v1"
-  - model_name: "phi-4-Q4_K_M"
-    litellm_params:
-      model: "openai/phi-4-Q4_K_M"
-      api_base: "http://localhost:59119/"
+  # - model_name: "phi-4-Q4_K_M"
+  #   litellm_params:
+  #     model: "openai/phi-4-Q4_K_M"
+  #     api_base: "http://localhost:59119/"
   - model_name: "dall-e-3"
     litellm_params:
       model: "openai/dall-e-3"      
-  - model_name: "stable-diffusion-xl-1.0-turbo-FP16.gguf"
-    litellm_params:
-      model: "llamabox/stable-diffusion-xl-1.0-turbo-FP16.gguf"
-      api_base: "http://falcon:1234/"
 
 litellm_settings:
   custom_provider_map:
