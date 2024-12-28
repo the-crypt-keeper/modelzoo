@@ -162,10 +162,8 @@ class ProxyServer:
                         data['sampler_name'] = sampler_map[data['sampler_name']]
 
                 # Apply adapter if specified in protocol
-                adapter_name = PROTOCOLS[protocol].get(f'{endpoint_type}_adapter')
-                if adapter_name:
-                    adapter_func = globals()[adapter_name]
-                    data = adapter_func(data)
+                adapter_func = PROTOCOLS[protocol].get(f'{endpoint_type}_adapter')
+                if adapter_func is not None: data = adapter_func(data)
 
                 # Determine if we should stream based on request
                 should_stream = data.get('stream', False)
