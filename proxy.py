@@ -172,9 +172,10 @@ class ProxyServer:
                     if data['sampler_name'] in sampler_map:
                         data['sampler_name'] = sampler_map[data['sampler_name']]
 
-                # Apply adapter if specified in protocol
-                adapter_func = PROTOCOLS[protocol].get(f'{endpoint_type}_adapter')
-                if adapter_func is not None: data = adapter_func(data)
+                # Apply request adapter if specified in protocol
+                request_adapter = PROTOCOLS[protocol].get(f'{endpoint_type}_request_adapter')
+                if request_adapter is not None:
+                    data = request_adapter(data)
 
                 # Determine if we should stream based on request
                 should_stream = data.get('stream', False)
@@ -199,8 +200,15 @@ class ProxyServer:
                                   content_type=content_type)
                 else:
                     # For non-streaming requests, get full response
-                    response_data = resp.content
-                    return Response(response_data,
+                    response_data = resp.json() if content_type == 'application/json' else resp.content
+                    
+                    # Apply response adapter if specified in protocol
+                    if content_type == 'application/json':
+                        response_adapter = PROTOCOLS[protocol].get(f'{endpoint_type}_response_adapter')
+                        if response_adapter is not None:
+                            response_data = response_adapter(response_data)
+                    
+                    return Response(response_data if isinstance(response_data, bytes) else jsonify(response_data).data,
                                   status=resp.status_code,
                                   content_type=content_type)
             finally:

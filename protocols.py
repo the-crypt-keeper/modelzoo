@@ -1,13 +1,19 @@
 """Module defining supported protocols and their capabilities."""
 
-def sd_server_txt2img_adapter(data):
-    """Adapter for sd-server txt2img endpoint"""
+def sd_server_txt2img_request_adapter(data):
+    """Adapter for sd-server txt2img request"""
     adapted_data = data.copy()
     if 'sampler_name' in adapted_data:
         adapted_data['sample_method'] = adapted_data.pop('sampler_name')
     if 'steps' in adapted_data:
         adapted_data['sample_steps'] = adapted_data.pop('steps')
     return adapted_data
+
+def sd_server_txt2img_response_adapter(response_data):
+    """Adapter for sd-server txt2img response"""
+    if isinstance(response_data, list):
+        return {"images": response_data}
+    return response_data
 
 PROTOCOLS = {
     'openai': {
@@ -40,7 +46,8 @@ PROTOCOLS = {
         'completions': None,
         'chat_completions': None,
         'txt2img': '/txt2img',
-        'txt2img_adapter': sd_server_txt2img_adapter,
+        'txt2img_request_adapter': sd_server_txt2img_request_adapter,
+        'txt2img_response_adapter': sd_server_txt2img_response_adapter,
         'img2img': None,
         'image_sampler_map': {
             'Euler': 'euler',
