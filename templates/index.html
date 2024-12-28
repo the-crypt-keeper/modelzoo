@@ -464,6 +464,14 @@
             if (!window.logPollers) window.logPollers = {};
             
             function updateStatusAndLogs() {
+                // Get the running model element
+                const runningModel = $(`#logs-${idx}`).closest('.running-model');
+                
+                // Only proceed if this is a local model
+                if (runningModel.find('.model-controls').length === 0) {
+                    return; // This is a remote model, don't update
+                }
+                
                 $.ajax({
                     url: '/api/model/logs',
                     method: 'POST',
@@ -484,7 +492,6 @@
                     success: function(response) {
                         if (!response.success) return;
                         const status = response.status;
-                        const runningModel = $(`#logs-${idx}`).closest('.running-model');
                         const statusIndicator = runningModel.find('.status-indicator');
                         
                         statusIndicator.removeClass('status-ready status-starting status-stopped');
