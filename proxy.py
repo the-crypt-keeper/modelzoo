@@ -3,7 +3,7 @@ import requests
 from werkzeug.exceptions import ClientDisconnected
 from threading import Lock
 from collections import defaultdict
-from protocols import PROTOCOLS, PROTOCOLS_TEXT, PROTOCOLS_IMAGE
+from protocols import PROTOCOLS
 
 class ProxyServer:
      def __init__(self, zookeeper):
@@ -30,10 +30,12 @@ class ProxyServer:
      def get_models(self):
          unique_models = {}
          
-         # Get all available models and filter for text protocols
+         # Get all available models and filter for those with text capabilities
          available_models = self.zookeeper.get_available_models()
          for model in available_models:
-             if (model['listener']['protocol'] in PROTOCOLS_TEXT and 
+             protocol = model['listener']['protocol']
+             if (protocol in PROTOCOLS and 
+                 (PROTOCOLS[protocol]['completions'] or PROTOCOLS[protocol]['chat_completions']) and
                  model['model_name'] not in unique_models):
                  unique_models[model['model_name']] = {
                      "id": model['model_name'],
@@ -46,10 +48,11 @@ class ProxyServer:
          """Return list of available SD models in A1111 format"""
          image_models = []
          
-         # Get all available models and filter for image protocols
+         # Get all available models and filter for those with image capabilities
          available_models = self.zookeeper.get_available_models()
          for model in available_models:
-             if model['listener']['protocol'] in PROTOCOLS_IMAGE:
+             protocol = model['listener']['protocol']
+             if protocol in PROTOCOLS and (PROTOCOLS[protocol]['txt2img'] or PROTOCOLS[protocol]['img2img']):
                  image_models.append({
                      "title": model['model_name'],
                      "model_name": model['model_name'],
