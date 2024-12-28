@@ -58,12 +58,20 @@ class ProxyServer:
      def service_info(self):
          """Return service information according to the serviceinfo spec."""
          return jsonify({
-             "version": "1.0",
-             "type": "llm",
-             "endpoints": {
-                 "completions": "/v1/completions",
-                 "chat": "/v1/chat/completions",
-                 "images": "/v1/images/generations"
+             "version": "0.2",
+             "software": {
+                 "name": "ModelZoo",
+                 "version": "0.0.1",
+                 "repository": "https://github.com/the-crypt-keeper/modelzoo",
+                 "homepage": "https://github.com/the-crypt-keeper/modelzoo"
+             },
+             "api": {
+                 "openai": {
+                     "name": "OpenAI API",
+                     "rel_url": "/v1",
+                     "documentation": "https://openai.com/documentation/api",
+                     "version": "0.0.1"
+                 }
              }
          })
              
