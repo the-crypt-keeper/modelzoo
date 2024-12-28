@@ -646,7 +646,7 @@ class SDServerRuntime(Runtime):
         cmd.extend(["--cfg-scale", str(param_list.get("cfg_scale", 1.0))])
         cmd.extend(["-p", param_list.get("default_prompt", "default prompt")])
 
-        listener.protocol = 'a1111'
+        listener.protocol = 'sd-server'
         return RunningModel(
             runtime=self,
             model=model,

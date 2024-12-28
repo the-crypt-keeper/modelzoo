@@ -16,5 +16,13 @@ PROTOCOLS = {
         'chat_completions': None,
         'txt2img': '/sdapi/v1/txt2img',
         'img2img': '/sdapi/v1/img2img',
+    },
+    'sd-server': {
+        'health_check': '/',
+        'health_status': 404,
+        'completions': None,
+        'chat_completions': None,
+        'txt2img': '/txt2img',
+        'img2img': '/img2img',
     }
 }
