@@ -293,18 +293,17 @@ class ZooKeeper:
         # Add local models
         if local_models:
             for rmodel in self.running_models:
-                if rmodel.status()['ready']:
-                    available_models.append({
-                        'model_name': rmodel.model.model_name,
-                        'model_id': rmodel.model.model_id,
-                        'status': rmodel.status(),
-                        'listener': {
-                            'protocol': rmodel.listener.protocol,
-                            'host': '127.0.0.1',
-                            'port': rmodel.listener.port
-                        },
-                        'source': 'local'
-                    })
+                available_models.append({
+                    'model_name': rmodel.model.model_name,
+                    'model_id': rmodel.model.model_id,
+                    'status': rmodel.status(),
+                    'listener': {
+                        'protocol': rmodel.listener.protocol,
+                        'host': '127.0.0.1',
+                        'port': rmodel.listener.port
+                    },
+                    'source': 'local'
+                })
         
         # Add remote models
         if remote_models:
