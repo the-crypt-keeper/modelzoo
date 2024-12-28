@@ -62,7 +62,7 @@ class SDServer(CustomLLM):
         if 'steps' not in optional_params: optional_params['steps'] = 8
         optional_params['sample_steps'] = optional_params.pop('steps')
         
-        if 'negative_prompt' not in optional_params: optional_params['negative_prompt'] = "Bad quality, ugly"
+        # if 'negative_prompt' not in optional_params: optional_params['negative_prompt'] = "Bad quality, ugly"
         
         if 'seed' not in optional_params: optional_params['seed'] = -1
         

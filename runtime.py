@@ -609,16 +609,16 @@ class SDServerRuntime(Runtime):
         cmd.extend(["--diffusion-model", diffusion_model])
         
         # Add optional models if present
-        t5xxl = self._get_model_path(config.get('sdt5xxl'), base_dir)
-        if t5xxl:
+        if config.get('sdt5xxl'):
+            t5xxl = self._get_model_path(config.get('sdt5xxl'), base_dir)        
             cmd.extend(["--t5xxl", t5xxl])
-            
-        clip_l = self._get_model_path(config.get('sdclipl'), base_dir)
-        if clip_l:
+        
+        if config.get('sdclipl'):
+            clip_l = self._get_model_path(config.get('sdclipl'), base_dir)
             cmd.extend(["--clip_l", clip_l])
-            
-        vae = self._get_model_path(config.get('sdvae'), base_dir)
-        if vae:
+        
+        if config.get('sdvae'):
+            vae = self._get_model_path(config.get('sdvae'), base_dir)
             cmd.extend(["--vae", vae])
 
         # Add runtime parameters

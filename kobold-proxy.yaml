@@ -1,8 +1,8 @@
 model_list:
-  - model_name: "flux1-schnell-q4_k"
+  - model_name: "flux-hyp8-Q8_0-kobold"
     litellm_params:
-      model: "sdserver/flux1-schnell-q4_k"
-      api_base: "http://falcon:55161/"
+      model: "kobold/flux-hyp8-Q8_0"
+      api_base: "http://falcon:59203/"
     model_info:
       mode: image_generation
   - model_name: "flux-hyp8-Q8_0-sdserver"
