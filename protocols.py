@@ -40,7 +40,7 @@ PROTOCOLS = {
         'completions': None,
         'chat_completions': None,
         'txt2img': '/txt2img',
-        'txt2img_adapter': 'sd_server_txt2img_adapter',
+        'txt2img_adapter': sd_server_txt2img_adapter,
         'img2img': None,
         'image_sampler_map': {
             'Euler': 'euler',
