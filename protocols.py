@@ -12,7 +12,7 @@ def sd_server_txt2img_request_adapter(data):
 def sd_server_txt2img_response_adapter(response_data):
     """Adapter for sd-server txt2img response"""
     if isinstance(response_data, list):
-        return {"images": response_data}
+        return {"images": [ x['data'] for x in response_data] }
     return response_data
 
 PROTOCOLS = {
