@@ -264,15 +264,7 @@ class ZooKeeper:
         return jsonify({'success': False, 'error': 'Model not found'}), 404
 
     def handle_get_running_models(self):
-        running_models = []
-        for rmodel in self.running_models:
-            model = rmodel.model
-            running_models.append({
-                'model_name': model.model_name,
-                'model_id': model.model_id,
-                'status': rmodel.status(),
-                'listener': rmodel.listener.__dict__
-            })
+        running_models = self.get_available_models(local_models=True, remote_models=False)
         return jsonify({'running_models': running_models})
 
     def get_available_models(self, local_models: bool = True, remote_models: bool = True) -> List[Dict]:
