@@ -20,17 +20,14 @@ class ProxyServer:
 
          # OpenAI API routes
          self.app.route('/v1/models', methods=['GET'])(self.get_models)
-         self.app.route('/v1/completions', methods=['POST'])(
-             lambda: self.handle_request('completions'))
-         self.app.route('/v1/chat/completions', methods=['POST'])(
-             lambda: self.handle_request('chat_completions'))
+         # OpenAI API routes
+         self.app.route('/v1/completions', methods=['POST'])(self.handle_completions)
+         self.app.route('/v1/chat/completions', methods=['POST'])(self.handle_chat_completions)
          
          # A1111 API routes
          self.app.route('/sdapi/v1/sd-models', methods=['GET'])(self.get_sd_models)
-         self.app.route('/sdapi/v1/txt2img', methods=['POST'])(
-             lambda: self.handle_request('txt2img', required_keys=['prompt']))
-         self.app.route('/sdapi/v1/img2img', methods=['POST'])(
-             lambda: self.handle_request('img2img', required_keys=['prompt']))
+         self.app.route('/sdapi/v1/txt2img', methods=['POST'])(self.handle_txt2img)
+         self.app.route('/sdapi/v1/img2img', methods=['POST'])(self.handle_img2img)
 
      def get_models(self):
          unique_models = {}
@@ -69,6 +66,22 @@ class ProxyServer:
          
          return jsonify(image_models)
      
+     def handle_completions(self):
+         """Handle /v1/completions endpoint"""
+         return self.handle_request('completions')
+
+     def handle_chat_completions(self):
+         """Handle /v1/chat/completions endpoint"""
+         return self.handle_request('chat_completions')
+
+     def handle_txt2img(self):
+         """Handle /sdapi/v1/txt2img endpoint"""
+         return self.handle_request('txt2img', required_keys=['prompt'])
+
+     def handle_img2img(self):
+         """Handle /sdapi/v1/img2img endpoint"""
+         return self.handle_request('img2img', required_keys=['prompt'])
+
      def handle_request(self, endpoint_type, required_keys=None):
          """Unified request handler for all endpoints.
          
