@@ -177,29 +177,44 @@ class ProxyServer:
                 target_url = selected['url']
             headers = {k: v for k, v in request.headers.items() if k.lower() != 'host'}
 
-            resp = requests.post(target_url, json=data, headers=headers, stream=True)
+            # Determine if we should stream based on request
+            should_stream = data.get('stream', False)
+            
+            resp = requests.post(target_url, json=data, headers=headers, stream=should_stream)
             content_type = resp.headers.get('Content-Type', 'application/json')
-
+            
             model_name = selected['model_name']  # Capture for closure
 
-            @stream_with_context
-            def generate():
+            if should_stream:
+                @stream_with_context
+                def generate():
+                    try:
+                        for chunk in resp.iter_content(chunk_size=4096):
+                            if chunk:
+                                yield chunk                            
+                    except GeneratorExit:
+                        print("Client disconnected. Stopping stream.")
+                    finally:
+                        print("Closing proxy connection.")
+                        with self.connections_lock:
+                            self.active_connections[target_url] -= 1
+                        resp.close()
+
+                return Response(generate(),
+                              direct_passthrough=True,
+                              status=resp.status_code,
+                              content_type=content_type)
+            else:
+                # For non-streaming requests, get full response
                 try:
-                    for chunk in resp.iter_content(chunk_size=4096):
-                        if chunk:
-                            yield chunk                            
-                except GeneratorExit:
-                    print("Client disconnected. Stopping stream.")
+                    response_data = resp.content
+                    return Response(response_data,
+                                  status=resp.status_code,
+                                  content_type=content_type)
                 finally:
-                    print("Closing proxy connection.")
                     with self.connections_lock:
                         self.active_connections[target_url] -= 1
                     resp.close()
-
-            return Response(generate(),
-                            direct_passthrough=True,
-                            status=resp.status_code,
-                            content_type=content_type)
         
         except requests.RequestException as e:
             print(f"Network error occurred: {str(e)}")
