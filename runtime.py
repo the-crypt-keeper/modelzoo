@@ -487,8 +487,18 @@ class KoboldCppRuntime(Runtime):
         # set working dir to where the model is (for kcppt)
         working_dir = os.path.dirname(os.path.abspath(model.model_id))
         
-        # Set OpenAI protocol for API compatibility
-        listener.protocol = 'openai'
+        # Set protocol based on model type and configuration
+        if model.model_format == "kcppt":
+            # Load and parse the checkpoint file
+            with open(model.model_id, 'r') as f:
+                config = json.load(f)
+            # If it has an SD model, it's an SD checkpoint
+            if config.get('sdmodel'):
+                listener.protocol = 'a1111'
+            else:
+                listener.protocol = 'openai'
+        else:
+            listener.protocol = 'openai'
 
         return RunningModel(
             runtime=self,            
