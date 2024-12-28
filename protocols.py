@@ -23,6 +23,7 @@ PROTOCOLS = {
         'completions': None,
         'chat_completions': None,
         'txt2img': '/txt2img',
-        'img2img': '/img2img',
+        'txt2img_adapter': None,            
+        'img2img': None,
     }
 }
