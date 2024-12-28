@@ -4,6 +4,10 @@ from werkzeug.exceptions import ClientDisconnected
 from threading import Lock
 from collections import defaultdict
 
+# Protocol lists for filtering models
+PROTOCOLS_TEXT = ['openai']
+PROTOCOLS_IMAGE = ['a1111']
+
 class ProxyServer:
      def __init__(self, zookeeper):
          self.zookeeper = zookeeper
@@ -29,10 +33,11 @@ class ProxyServer:
      def get_models(self):
          unique_models = {}
          
-         # Get all available models
+         # Get all available models and filter for text protocols
          available_models = self.zookeeper.get_available_models()
          for model in available_models:
-             if model['model_name'] not in unique_models:
+             if (model['listener']['protocol'] in PROTOCOLS_TEXT and 
+                 model['model_name'] not in unique_models):
                  unique_models[model['model_name']] = {
                      "id": model['model_name'],
                      "owned_by": model['source']
@@ -44,10 +49,10 @@ class ProxyServer:
          """Return list of available SD models in A1111 format"""
          image_models = []
          
-         # Get all available models
+         # Get all available models and filter for image protocols
          available_models = self.zookeeper.get_available_models()
          for model in available_models:
-             if model['listener']['protocol'] == 'a1111':
+             if model['listener']['protocol'] in PROTOCOLS_IMAGE:
                  image_models.append({
                      "title": model['model_name'],
                      "model_name": model['model_name'],
