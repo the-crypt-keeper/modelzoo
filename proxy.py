@@ -40,20 +40,6 @@ class ProxyServer:
          
          return jsonify({"data": list(unique_models.values())})
 
-     def handle_completions(self):
-         return self._handle_request('/v1/completions')
-
-     def handle_chat_completions(self):
-         return self._handle_request('/v1/chat/completions')
-
-     def handle_image_generation(self):
-         return self._handle_request('/v1/images/generations')
-
-     def health_check(self):
-         # Check local running models
-         if len(self.zookeeper.get_available_models(local_models=True, remote_models=False)) > 0:
-             return '', 200
-
      def get_sd_models(self):
          """Return list of available SD models in A1111 format"""
          image_models = []
@@ -72,6 +58,20 @@ class ProxyServer:
                  })
          
          return jsonify(image_models)
+     
+     def handle_completions(self):
+         return self._handle_request('/v1/completions')
+
+     def handle_chat_completions(self):
+         return self._handle_request('/v1/chat/completions')
+
+     def handle_image_generation(self):
+         return self._handle_request('/v1/images/generations')
+
+     def health_check(self):
+         # Check local running models
+         if len(self.zookeeper.get_available_models(local_models=True, remote_models=False)) > 0:
+             return '', 200
 
      def handle_txt2img(self):
          if not request.is_json: return jsonify({"error": "Request must be JSON"}), 400
@@ -119,7 +119,7 @@ class ProxyServer:
             model_instances = []
             
             # Get all available model instances
-            available_models = self.zookeeper.get_available_models(local_models=True, remote_models=True)
+            available_models = self.zookeeper.get_available_models()
             for model in available_models:
                 if model['model_name'] == model_name:
                     host = model['listener']['host']
