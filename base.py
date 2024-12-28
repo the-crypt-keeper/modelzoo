@@ -170,11 +170,9 @@ class RunningModel:
             bool: True if server is ready, False otherwise
         """
         try:
-            protocol = self.listener.protocol
-            if protocol not in PROTOCOLS:
-                return False
-                
-            protocol_def = PROTOCOLS[protocol]
+            protocol = self.listener.protocol               
+            protocol_def = PROTOCOLS.get(protocol, {})
+            
             health_check = protocol_def.get('health_check')
             health_status = protocol_def.get('health_status', 200)
             
