@@ -18,6 +18,7 @@ class ProxyServer:
          self.app.route('/v1/chat/completions', methods=['POST'])(self.handle_chat_completions)
          self.app.route('/v1/images/generations', methods=['POST'])(self.handle_image_generation)
          self.app.route('/health', methods=['GET'])(self.health_check)
+         self.app.route('/.well-known/serviceinfo', methods=['GET'])(self.service_info)
 
      def get_models(self):
          unique_models = {}
@@ -53,6 +54,18 @@ class ProxyServer:
          # Check local running models
          if len(self.zookeeper.get_running_models()) > 0:
              return '', 200
+
+     def service_info(self):
+         """Return service information according to the serviceinfo spec."""
+         return jsonify({
+             "version": "1.0",
+             "type": "llm",
+             "endpoints": {
+                 "completions": "/v1/completions",
+                 "chat": "/v1/chat/completions",
+                 "images": "/v1/images/generations"
+             }
+         })
              
          # Check remote models
          remote_models = self.zookeeper.get_remote_models()
