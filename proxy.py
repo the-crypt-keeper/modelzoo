@@ -101,16 +101,6 @@ class ProxyServer:
          data = request.get_json()
          if 'prompt' not in data:
              return jsonify({"error": "prompt is required"}), 400
-             
-         # Add any missing optional parameters with defaults
-         data.setdefault('negative_prompt', '')
-         data.setdefault('cfg_scale', 5)
-         data.setdefault('steps', 20)
-         data.setdefault('width', 512)
-         data.setdefault('height', 512)
-         data.setdefault('seed', -1)
-         data.setdefault('clip_skip', -1)
-         data.setdefault('sampler_name', 'Euler a')
          
          return self._handle_request('/sdapi/v1/txt2img', data)
 
@@ -122,18 +112,7 @@ class ProxyServer:
          data = request.get_json()
          if 'prompt' not in data:
              return jsonify({"error": "prompt is required"}), 400
-             
-         # Add any missing optional parameters with defaults
-         data.setdefault('negative_prompt', '')
-         data.setdefault('cfg_scale', 5)
-         data.setdefault('steps', 20)
-         data.setdefault('width', 512)
-         data.setdefault('height', 512)
-         data.setdefault('seed', -1)
-         data.setdefault('clip_skip', -1)
-         data.setdefault('sampler_name', 'Euler a')
-         data.setdefault('init_images', [])
-         
+                     
          return self._handle_request('/sdapi/v1/img2img', data)
 
      def service_info(self):
@@ -155,14 +134,6 @@ class ProxyServer:
                  }
              }
          })
-             
-         # Check remote models
-         remote_models = self.zookeeper.get_remote_models()
-         for peer in remote_models:
-             if peer['error'] is None and len(peer['models']) > 0:
-                 return '', 200
-                 
-         return '', 500
 
      def _handle_request(self, endpoint, data=None):
         try:
