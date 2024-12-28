@@ -154,8 +154,21 @@ class ProxyServer:
             headers = {k: v for k, v in request.headers.items() if k.lower() != 'host'}
             
             try:
+                # Apply sampler mapping if this is an image endpoint
+                if endpoint_type in ['txt2img', 'img2img'] and 'sampler_name' in data:
+                    protocol = model['listener']['protocol']
+                    sampler_map = PROTOCOLS[protocol].get('image_sampler_map', {})
+                    if data['sampler_name'] in sampler_map:
+                        data['sampler_name'] = sampler_map[data['sampler_name']]
+
+                # Apply adapter if specified in protocol
+                adapter_name = PROTOCOLS[protocol].get(f'{endpoint_type}_adapter')
+                if adapter_name:
+                    adapter_func = globals()[adapter_name]
+                    data = adapter_func(data)
+
                 # Determine if we should stream based on request
-                should_stream = data.get('stream', False)            
+                should_stream = data.get('stream', False)
                 resp = requests.post(target_url, json=data, headers=headers, stream=should_stream)
                 content_type = resp.headers.get('Content-Type', 'application/json')
                 
