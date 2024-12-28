@@ -83,6 +83,8 @@ class ProxyServer:
          data = request.get_json()
          if 'prompt' not in data: return jsonify({"error": "prompt is required"}), 400
          
+         # TODO: middleware for other txt2providers here
+         
          return self._handle_request('/sdapi/v1/txt2img', data)
 
      def handle_img2img(self):
