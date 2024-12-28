@@ -29,21 +29,14 @@ class ProxyServer:
      def get_models(self):
          unique_models = {}
          
-         # Add local models (these take precedence)
-         for rmodel in self.zookeeper.get_running_models():
-             unique_models[rmodel.model.model_name] = {
-                 "id": rmodel.model.model_name,
-                 "owned_by": "modelzoo"
-             }
-         
-         # Add remote models (only if not already present locally)
-         for peer in self.zookeeper.get_remote_models():
-             for model in peer['models']:
-                 if model['model_name'] not in unique_models:
-                     unique_models[model['model_name']] = {
-                         "id": model['model_name'],
-                         "owned_by": f"remote:{peer['host']}"
-                     }
+         # Get all available models
+         available_models = self.zookeeper.get_available_models()
+         for model in available_models:
+             if model['model_name'] not in unique_models:
+                 unique_models[model['model_name']] = {
+                     "id": model['model_name'],
+                     "owned_by": model['source']
+                 }
          
          return jsonify({"data": list(unique_models.values())})
 
@@ -65,31 +58,18 @@ class ProxyServer:
          """Return list of available SD models in A1111 format"""
          image_models = []
          
-         # Add local models
-         for rmodel in self.zookeeper.get_running_models():
-             if rmodel.listener.protocol == 'a1111':
+         # Get all available models
+         available_models = self.zookeeper.get_available_models()
+         for model in available_models:
+             if model['listener']['protocol'] == 'a1111':
                  image_models.append({
-                     "title": rmodel.model.model_name,
-                     "model_name": rmodel.model.model_name,
+                     "title": model['model_name'],
+                     "model_name": model['model_name'],
                      "hash": "0000000000", # Placeholder
                      "sha256": "0" * 64,  # Placeholder
-                     "filename": rmodel.model.path if hasattr(rmodel.model, 'path') else "",
+                     "filename": model.get('path', ""),
                      "config": None
                  })
-         
-         # Add remote models
-         for peer in self.zookeeper.get_remote_models():
-             if peer['error'] is None:
-                 for remote_model in peer['models']:
-                     if remote_model.get('listener', {}).get('protocol') == 'a1111':
-                         image_models.append({
-                             "title": remote_model['model_name'],
-                             "model_name": remote_model['model_name'],
-                             "hash": "0000000000", # Placeholder
-                             "sha256": "0" * 64,  # Placeholder
-                             "filename": remote_model.get('path', ""),
-                             "config": None
-                         })
          
          return jsonify(image_models)
 
