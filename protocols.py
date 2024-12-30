@@ -1,5 +1,41 @@
 """Module defining supported protocols and their capabilities."""
 
+def dalle_txt2img_request_adapter(data):
+    """Adapter for DALL-E image generation request"""
+    adapted_data = data.copy()
+    
+    # Map prompt directly
+    if 'prompt' not in adapted_data:
+        return adapted_data
+        
+    # Map batch count to n
+    if 'batch_count' in adapted_data:
+        adapted_data['n'] = adapted_data.pop('batch_count')
+        
+    # Map steps to quality (1=standard, >1=hd)
+    if 'steps' in adapted_data:
+        adapted_data['quality'] = 'hd' if adapted_data.pop('steps') > 1 else 'standard'
+        
+    # Combine width/height into size
+    if 'width' in adapted_data and 'height' in adapted_data:
+        size = f"{adapted_data.pop('width')}x{adapted_data.pop('height')}"
+        adapted_data['size'] = size
+        
+    # Map sampler to style
+    if 'sampler_name' in adapted_data:
+        adapted_data['style'] = adapted_data.pop('sampler_name')
+        
+    # Always request base64 JSON
+    adapted_data['response_format'] = 'b64_json'
+    
+    return adapted_data
+
+def dalle_txt2img_response_adapter(response_data):
+    """Adapter for DALL-E image generation response"""
+    if not response_data or 'data' not in response_data:
+        return response_data
+    return {"images": [img['b64_json'] for img in response_data['data']]}
+
 def sd_server_txt2img_request_adapter(data):
     """Adapter for sd-server txt2img request"""
     adapted_data = data.copy()
@@ -16,6 +52,20 @@ def sd_server_txt2img_response_adapter(response_data):
     return response_data
 
 PROTOCOLS = {
+    'dalle': {
+        'health_check': '/v1/models',
+        'health_status': 200,
+        'completions': None,
+        'chat_completions': None,
+        'txt2img': '/v1/images/generations',
+        'txt2img_request_adapter': dalle_txt2img_request_adapter,
+        'txt2img_response_adapter': dalle_txt2img_response_adapter,
+        'img2img': None,
+        'image_sampler_map': {
+            'Natural': 'natural',
+            'Vivid': 'vivid'
+        }
+    },
     'openai': {
         'health_check': '/health',
         'health_status': 200,
