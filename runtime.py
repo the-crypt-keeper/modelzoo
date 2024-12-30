@@ -550,6 +550,12 @@ class SDServerRuntime(Runtime):
                 param_description="Number of sampling steps",
                 param_type="int",
                 param_default=1
+            ),
+            RuntimeParameter(
+                param_name="extra_args",
+                param_description="Optional additional arguments to the binary",
+                param_type="str",
+                param_default=""
             )
         ]
 
@@ -646,6 +652,11 @@ class SDServerRuntime(Runtime):
         cmd.extend(["--cfg-scale", str(param_list.get("cfg_scale", 1.0))])
         cmd.extend(["--steps", str(param_list.get("steps", 1))])
         cmd.extend(["-p", "default prompt"])  # Always pass default prompt
+
+        # Add extra arguments if provided
+        extra_args = param_list.get("extra_args", "").strip()
+        if extra_args:
+            cmd.extend(extra_args.split())
 
         listener.protocol = 'sd-server'
         return RunningModel(
