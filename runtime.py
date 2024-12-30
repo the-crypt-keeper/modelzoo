@@ -365,7 +365,10 @@ class LiteLLMRuntime(Runtime):
 
         # Prepare extra environment variables
         extra_env = {"OPENAI_API_KEY": model.api_key} if model.api_key else {}
-        listener.protocol = 'openai'
+        
+        # Set protocol based on model name
+        listener.protocol = 'dall-e' if 'dall-e' in model.model_name.lower() else 'openai'
+        
         return RunningModel(
             runtime=self,
             model=model,
