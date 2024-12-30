@@ -526,30 +526,30 @@ class SDServerRuntime(Runtime):
         # Define available parameters
         self.runtime_params = [
             RuntimeParameter(
+                param_name="sampler_name",
+                param_description="Sampling method",
+                param_type="enum",
+                param_default="Euler",
+                param_enum={
+                    "Euler": "euler",
+                    "Euler A": "euler_a", 
+                    "Heun": "heun",
+                    "DPM2": "dpm2",
+                    "DPM++": "dpmpp_2m",
+                    "LCM": "lcm"
+                }
+            ),
+            RuntimeParameter(
                 param_name="cfg_scale",
                 param_description="CFG Scale",
                 param_type="float",
                 param_default=1.0
             ),
             RuntimeParameter(
-                param_name="sampling_method",
-                param_description="Sampling method",
-                param_type="enum",
-                param_default="Euler",
-                param_enum={
-                    "Euler": "euler",
-                    "Euler a": "euler_a", 
-                    "Heun": "heun",
-                    "DPM2": "dpm2",
-                    "DPM++ 2M": "dpmpp_2m",
-                    "LCM": "lcm"
-                }
-            ),
-            RuntimeParameter(
-                param_name="default_prompt",
-                param_description="Default prompt",
-                param_type="str",
-                param_default="default prompt"
+                param_name="steps",
+                param_description="Number of sampling steps",
+                param_type="int",
+                param_default=1
             )
         ]
 
@@ -639,12 +639,13 @@ class SDServerRuntime(Runtime):
             cmd.extend(["--vae", vae])
 
         # Add runtime parameters
-        sampling_param = next(param for param in self.runtime_params if param.param_name == "sampling_method")
-        sampling_value = sampling_param.param_enum[param_list.get("sampling_method", "Euler")]
+        sampling_param = next(param for param in self.runtime_params if param.param_name == "sampler_name")
+        sampling_value = sampling_param.param_enum[param_list.get("sampler_name", "Euler")]
         cmd.extend(["--sampling-method", sampling_value])
         
         cmd.extend(["--cfg-scale", str(param_list.get("cfg_scale", 1.0))])
-        cmd.extend(["-p", param_list.get("default_prompt", "default prompt")])
+        cmd.extend(["--steps", str(param_list.get("steps", 1))])
+        cmd.extend(["-p", "default prompt"])  # Always pass default prompt
 
         listener.protocol = 'sd-server'
         return RunningModel(
