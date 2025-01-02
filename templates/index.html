@@ -62,6 +62,14 @@
         .zoo-list {
             margin-bottom: 10px;
         }
+        .launch-name-container {
+            margin-bottom: 15px;
+        }
+        .launch-name-container input {
+            margin-left: 10px;
+            padding: 5px;
+            width: 60%;
+        }
         .launch-controls {
             display: flex;
             align-items: center;
@@ -170,7 +178,11 @@
 
     <div class="right-column">
         <div id="launch-dialog">
-            <h3>Launch: <span id="launch-model-name"></span></h3>
+            <h3>Launch Model</h3>
+            <div class="launch-name-container">
+                <label for="custom-name">Name:</label>
+                <input type="text" id="custom-name">
+            </div>
             <div class="radio-group-container">
                 <label>ENV:</label>
                 <div id="env-select" class="radio-group">
@@ -314,7 +326,7 @@
         function showLaunchDialog(zooName, modelId, modelName, modelFormat) {
             $('#launch-dialog').show();
             $('#launch-dialog').data('modelId', modelId);
-            $('#launch-model-name').text(modelName);
+            $('#custom-name').val(modelName);
             
             const lastLaunchInfo = model_launch_info[`${zooName}:${modelName}`] || {};
             
@@ -432,6 +444,7 @@
                 data: JSON.stringify({
                     zoo_name: zooName,
                     model_id: modelId,
+                    custom_name: $('#custom-name').val(),
                     runtime: runtime,
                     environment: env,
                     port: parseInt(port, 10),
