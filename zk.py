@@ -234,17 +234,10 @@ class ZooKeeper:
         # Create listener
         listener = Listener('http', '0.0.0.0', port)
 
-        # If custom name provided, create a copy of the model with the new name
+        # Update model name if custom name provided
         if custom_name:
-            model = Model(
-                zoo_name=model.zoo_name,
-                model_name=custom_name,
-                model_id=model.model_id,
-                model_path=model.model_path,
-                model_format=model.model_format,
-                model_size=model.model_size
-            )
-            
+            model.model_name = custom_name
+
         # Spawn model
         running_model = runtime.spawn(environment, listener, model, params)
         self.running_models.append(running_model)
