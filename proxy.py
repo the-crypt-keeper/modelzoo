@@ -154,7 +154,7 @@ class ProxyServer:
                     })
             
             if not model_instances:
-                return jsonify({"error": f"Model {model_name} not found or not running"}), 404
+                return jsonify({"error": f"Model {requested_model} not found or not running"}), 404
             
             # Select instance with least connections
             with self.connections_lock:
