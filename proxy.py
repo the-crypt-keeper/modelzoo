@@ -128,8 +128,8 @@ class ProxyServer:
 
      def _handle_request(self, endpoint_type, data):
         try:
-            model_name = data.get('model')
-            if not model_name: return jsonify({"error": "Model not specified in the request"}), 400
+            requested_model = data.get('model')
+            if not requested_model: return jsonify({"error": "Model not specified in the request"}), 400
 
             # Get all available instances of the requested model
             model_instances = []
@@ -137,7 +137,8 @@ class ProxyServer:
             # Get all available model instances, build potential endpoint map
             available_models = self.zookeeper.get_available_models()
             for model in available_models:
-                if model['model_name'] == model_name:
+                # Match on display name or model name
+                if model['model_name'] == requested_model:
                     protocol = model['listener']['protocol']                   
                     endpoint = PROTOCOLS.get(protocol, {})[endpoint_type]
                     if not endpoint:  # Protocol doesn't support this endpoint
@@ -147,6 +148,7 @@ class ProxyServer:
                     port = model['listener']['port']
                     model_instances.append({
                         'model_name': model['model_name'],
+                        'model_id': model['model_id'],
                         'protocol': protocol,
                         'url': f"http://{host}:{port}{endpoint}"
                     })
@@ -171,6 +173,10 @@ class ProxyServer:
                     sampler_map = PROTOCOLS[protocol].get('image_sampler_map', {})
                     if data['sampler_name'] in sampler_map:
                         data['sampler_name'] = sampler_map[data['sampler_name']]
+
+                # Replace model name with model ID in request
+                data = data.copy()
+                data['model'] = selected['model_id']
 
                 # Apply request adapter if specified in protocol
                 request_adapter = PROTOCOLS[protocol].get(f'{endpoint_type}_request_adapter')
