@@ -1,17 +1,17 @@
 # ModelZoo
 
-ModelZoo is a system for managing and serving local Large Language Models (LLMs). It provides a flexible framework for discovering, launching, and managing various LLM models using different runtimes and environments.
+ModelZoo is a system for managing and serving local AI Models. It provides a flexible framework for discovering, launching, and managing Language, Vision and Image generation models using different runtimes and environments.
 
 ## Overview
 
 ModelZoo is composed of several key components:
 
 1. **[Zoos](#zoos)**: Discovery systems that catalog models.
-2. **Models**: Data objects representing LLMs.
+2. **Models**: Data objects representing models.
 3. **[Runtimes](#runtimes)**: Backends that can serve models in specific environments.
-4. **[Environments](#environments)**: GPU Configurations (environment variables) for running models.
+4. **[Environments](#environments)**: Named GPU Configurations (environment variables).
 5. **[ZooKeeper](#zookeeper)**: Web application to interact with zoos, use runtimes to spawn models, interface with history and host the proxy.
-6. **Proxy**: A ZooKeeper component that forwards requests to the appropriate running model, allowing unified access to all launched models.
+6. **Proxy**: A hybrid OpenAI-compatible (text+multimodal) and A1111-compatible (image) proxy server.
 7. **ModelHistory**: A ZooKeeper component that tracks model launch history, including frequency of use and last used configurations.
 8. **[Peers](#remote-models-peers)**: Instances of ZooKeeper running on other hosts.
 
