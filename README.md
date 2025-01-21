@@ -2,18 +2,23 @@
 
 ModelZoo is a system for managing and serving local AI Models. It provides a flexible framework for discovering, launching, and managing Language, Vision and Image generation models using different runtimes and environments.
 
-## Overview
+## ZooKeeper
 
-ModelZoo is composed of several key components:
+ZooKeeper is the entry-point of ModelZoo. It's a flask application that:
 
-1. **[Zoos](#zoos)**: Discovery systems that catalog models.
-2. **Models**: Data objects representing models.
-3. **[Runtimes](#runtimes)**: Backends that can serve models in specific environments.
-4. **[Environments](#environments)**: Named GPU Configurations (environment variables).
-5. **[ZooKeeper](#zookeeper)**: Web application to interact with zoos, use runtimes to spawn models, interface with history and host the proxy.
-6. **Proxy**: A hybrid OpenAI-compatible (text+multimodal) and A1111-compatible (image) proxy server.
-7. **ModelHistory**: A ZooKeeper component that tracks model launch history, including frequency of use and last used configurations.
-8. **[Peers](#remote-models-peers)**: Instances of ZooKeeper running on other hosts.
+1. Loads configuration from a YAML file.
+2. Instantiates the configured zoos and runtimes.
+3. Provides a web-based user interface to:
+   - List available models.
+   - Launch models with specific runtimes and configurations.
+   - Manage running models (viewing logs, stopping models)
+4. Embeds a proxy server (`proxy.py`) that forwards requests to the appropriate running model
+   - Supports OpenAI protocol for text, chat and multi-modal completions
+   - Supports A1111 protocol for image generation
+5. Keeps track of model launch history
+   - Number of times a model has been launched, and the last launch time (to sort models by most frequently used)
+   - Last used enviroment and parameters (provides a better user experience by pre-filling launch configurations based on previous usage)
+6. Peers with instances of itself on other nodes to create distributed setups.
 
 ## Getting Started
 
@@ -29,21 +34,18 @@ ModelZoo is composed of several key components:
    ```
 5. Open the ZooKeeper web interface (listening at http://0.0.0.0:3333/ by default) to view, launch and manage models.
 
-## ZooKeeper
+## Components
 
-ZooKeeper is the main entry-point of ModelZoo. It's a flask application that:
+ModelZoo is composed of several key components:
 
-1. Loads configuration from a YAML file.
-2. Instantiates zoos and runtimes.
-3. Provides a web-based user interface for:
-   - Listing available models from all zoos.
-   - Launching models with specific runtimes and configurations.
-   - Managing running models (viewing logs, stopping models).
-4. Includes a proxy server (`proxy.py`) that forwards requests to the appropriate running model, allowing unified access to all launched models.
-5. Keeps track of model launch history
-   - Number of times a model has been launched, and the last launch time (to sort models by most frequently used)
-   - Last used enviroment and parameters (provides a better user experience by pre-filling launch configurations based on previous usage)
-6. Connects to instances of itself on other nodes to create distributed setups.
+1. **[Zoos](#zoos)**: Discovery systems that catalog models.
+2. **Models**: Data objects representing models.
+3. **[Runtimes](#runtimes)**: Backends that can serve models in specific environments.
+4. **[Environments](#environments)**: Named GPU Configurations (environment variables).
+5. **[ZooKeeper](#zookeeper)**: Web application to interact with zoos, use runtimes to spawn models, interface with history and host the proxy.
+6. **Proxy**: A hybrid OpenAI-compatible (text+multimodal) and A1111-compatible (image) proxy server.
+7. **ModelHistory**: A ZooKeeper component that tracks model launch history, including frequency of use and last used configurations.
+8. **[Peers](#remote-models-peers)**: Instances of ZooKeeper running on other hosts.
 
 ## Configuration
 
