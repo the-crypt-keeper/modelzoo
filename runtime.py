@@ -123,7 +123,7 @@ class VLLMRuntime(Runtime):
             venv_path (str): Path to virtual environment containing vllm
         """
         self.runtime_name = name
-        self.runtime_formats = ["gguf", "fp16", "awq", "gptq"]
+        self.runtime_formats = ["gguf", "fp16", "awq", "gptq", "bitsandbytes"]
         self.venv_path = venv_path
         
         # Define available parameters
@@ -158,7 +158,19 @@ class VLLMRuntime(Runtime):
                 param_description="Enforce eager execution mode",
                 param_type="bool",
                 param_default=True
-            )
+            ),
+            RuntimeParameter(
+                param_name="trust_remote_code",
+                param_description="Allow remote code execution",
+                param_type="bool",
+                param_default=False
+            ),            
+            RuntimeParameter(
+                param_name="extra_args",
+                param_description="Optional additional arguments to the binary",
+                param_type="str",
+                param_default=""
+            )            
         ]
 
     def spawn(self, 
@@ -200,6 +212,14 @@ class VLLMRuntime(Runtime):
         if param_list.get('enforce_eager', True):
             vllm_cmd += " --enforce-eager"
 
+        if param_list.get('trust_remote_code', True):
+            vllm_cmd += " --trust_remote_code"
+            
+        # Add extra arguments if provided
+        extra_args = param_list.get("extra_args", "").strip()
+        if extra_args:
+            vllm_cmd.extend(extra_args.split())
+            
         # Create temporary shell script
         script_fd, script_path = tempfile.mkstemp(prefix='vllm_', suffix='.sh')
         with os.fdopen(script_fd, 'w') as f:
@@ -723,6 +743,12 @@ class TabbyRuntime(Runtime):
                 param_default=True
             ),
             RuntimeParameter(
+                param_name="vision",
+                param_description="Enable vision",
+                param_type="bool",
+                param_default=False
+            ),            
+            RuntimeParameter(
                 param_name="gpu_split",
                 param_description="GPU split configuration",
                 param_type="str",
@@ -778,6 +804,10 @@ class TabbyRuntime(Runtime):
         if param_list.get("disable_auth", True):
             cmd.extend(["--disable-auth", "True"])
 
+        # Enable vision
+        if param_list.get("vision", True):
+            cmd.extend(["--vision", "True"])
+            
         # Add GPU split if provided
         gpu_split = param_list.get("gpu_split", "").strip()
         if gpu_split:
