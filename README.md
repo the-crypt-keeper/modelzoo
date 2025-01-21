@@ -213,6 +213,23 @@ Runtimes are responsible for serving models.  The `name` field is optional, and 
          bin_path: litellm
      ```
 
+6. **SDServerRuntime**: For serving Stable Diffusion models using [stable-diffusion.cpp](https://github.com/stduhpf/stable-diffusion.cpp/tree/server)
+   - Compatible model formats: kcppt
+   - Parameters:
+     - `bin_path` (str): Path to the sd-server binary
+   - Example:
+     ```yaml
+     - name: SDServerRuntime
+       class: SDServerRuntime
+       params:
+         bin_path: /path/to/sd-server
+     ```
+   - Runtime Parameters:
+     - `sampler_name`: Sampling method (Euler, Euler A, Heun, DPM2, DPM++, LCM)
+     - `cfg_scale`: CFG Scale for guidance (default: 1.0)
+     - `steps`: Number of sampling steps (default: 1)
+     - `extra_args`: Additional command line arguments
+
 Each runtime defines compatible model formats and configurable parameters. When launching a model, you can specify additional runtime-specific parameters as needed. The choice of runtime depends on the model format and the specific features required for your use case.
 
 ### Environments
