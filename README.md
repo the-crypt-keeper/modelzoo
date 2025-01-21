@@ -136,6 +136,17 @@ The system supports different types of zoos:
          cache: true
      ```
 
+4. **OllamaZoo**: Discovers models from a local or remote Ollama instance.
+   - Parameters:
+     - `api_url` (str): Base URL of the Ollama API (default: http://localhost:11434)
+   - Example:
+     ```yaml
+     - name: LocalOllama
+       class: OllamaZoo
+       params:
+         api_url: http://localhost:11434
+     ```
+
 Each zoo type is designed to accommodate different model discovery and management needs, allowing for flexibility in how models are sourced and cataloged within the ModelZoo system.
 
 ### Runtimes
