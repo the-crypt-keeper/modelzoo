@@ -342,3 +342,50 @@ class KoboldCheckpointZoo(Zoo):
 
     def __str__(self) -> str:
         return f"KoboldCheckpointZoo(path={self.path})"
+
+class OllamaZoo(Zoo):
+    """Zoo implementation that fetches models from an Ollama API."""
+
+    def __init__(self, name: str, api_url: str = "http://localhost:11434"):
+        """Initialize an OllamaZoo with API details.
+        
+        Args:
+            name (str): Name of the zoo
+            api_url (str): Base URL of the Ollama API (default: http://localhost:11434)
+        """
+        super().__init__(name)
+        self.api_url = api_url.rstrip('/')
+
+    def catalog(self) -> List[Model]:
+        """Fetch and return list of available models from the Ollama API.
+        
+        Returns:
+            List[Model]: List of models available through the API
+        """
+        try:
+            response = requests.get(f"{self.api_url}/api/tags")
+            if response.status_code != 200:
+                print(f"Error fetching models from Ollama API: {response.text}")
+                return []
+
+            data = response.json()
+            models = []
+            
+            for model_data in data.get('models', []):
+                model_name = model_data['name']
+                model = Model(
+                    zoo_name=self.name,
+                    model_id=f"ollama/{model_name}",
+                    model_format="litellm",
+                    model_name=model_name,
+                    model_size=model_data.get('size', 0)
+                )
+                models.append(model)
+            
+            return models
+        except requests.RequestException as e:
+            print(f"Error connecting to Ollama API: {e}")
+            return []
+
+    def __str__(self) -> str:
+        return f"OllamaZoo(api_url={self.api_url})"
