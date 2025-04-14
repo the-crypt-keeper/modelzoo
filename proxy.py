@@ -181,7 +181,7 @@ class ProxyServer:
                 # Apply request adapter if specified in protocol
                 request_adapter = PROTOCOLS[protocol].get(f'{endpoint_type}_request_adapter')
                 if request_adapter is not None:
-                    data = request_adapter(data)
+                    data = request_adapter(data, target_url)
 
                 # Determine if we should stream based on request
                 should_stream = data.get('stream', False)
@@ -212,7 +212,7 @@ class ProxyServer:
                     if content_type == 'application/json':
                         response_adapter = PROTOCOLS[protocol].get(f'{endpoint_type}_response_adapter')
                         if response_adapter is not None:
-                            response_data = response_adapter(response_data)
+                            response_data = response_adapter(response_data, target_url)
                     
                     return Response(response_data if isinstance(response_data, bytes) else jsonify(response_data).data,
                                   status=resp.status_code,

@@ -1,6 +1,9 @@
+import requests
+from time import sleep
+
 """Module defining supported protocols and their capabilities."""
 
-def dalle_txt2img_request_adapter(data):
+def dalle_txt2img_request_adapter(data, target_url):
     """Adapter for DALL-E image generation request"""
     adapted_data = { "prompt": data["prompt"], 'response_format': "b64_json" }
         
@@ -23,26 +26,36 @@ def dalle_txt2img_request_adapter(data):
     
     return adapted_data
 
-def dalle_txt2img_response_adapter(response_data):
+def dalle_txt2img_response_adapter(response_data, target_url):
     """Adapter for DALL-E image generation response"""
     if not response_data or 'data' not in response_data:
         return response_data
     return {"images": [img['b64_json'] for img in response_data['data']]}
 
-def sd_server_txt2img_request_adapter(data):
+def sd_server_txt2img_request_adapter(data, target_url):
     """Adapter for sd-server txt2img request"""
     adapted_data = data.copy()
+    if 'model' in adapted_data:
+        del adapted_data['model']
     if 'sampler_name' in adapted_data:
         adapted_data['sample_method'] = adapted_data.pop('sampler_name')
     if 'steps' in adapted_data:
         adapted_data['sample_steps'] = adapted_data.pop('steps')
     return adapted_data
 
-def sd_server_txt2img_response_adapter(response_data):
-    """Adapter for sd-server txt2img response"""
-    if isinstance(response_data, list):
-        return {"images": [ x['data'] for x in response_data] }
-    return response_data
+def sd_server_txt2img_response_adapter(response_data, target_url):
+    """Adapter for sd-server txt2img task_id response"""
+    task_id = response_data.get('task_id')
+    if task_id is None:
+        raise Exception("task_id was not returned by server")
+    
+    res = {'status':""}
+    while res['status'] != "Done":
+        sleep(1)
+        res = requests.get(target_url.replace('txt2img','result'), params={'task_id':task_id}, timeout=1).json()
+        print("Polling", res['status'])
+
+    return {"images": [ x['data'] for x in res['data']] }
 
 PROTOCOLS = {
     'dall-e': {
@@ -67,6 +80,14 @@ PROTOCOLS = {
         'txt2img': None,
         'img2img': None,
     },
+    'openai': {
+        'health_check': '/v1/models',
+        'health_status': 200,
+        'completions': '/v1/completions',
+        'chat_completions': '/v1/chat/completions',
+        'txt2img': None,
+        'img2img': None,
+    },    
     'a1111': {
         'health_check': '/sdapi/v1/sd-models',
         'health_status': 200,
