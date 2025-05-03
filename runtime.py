@@ -123,7 +123,7 @@ class VLLMRuntime(Runtime):
             venv_path (str): Path to virtual environment containing vllm
         """
         self.runtime_name = name
-        self.runtime_formats = ["gguf", "fp16", "awq", "gptq", "bitsandbytes"]
+        self.runtime_formats = ["gguf", "fp16", "awq", "gptq", "bitsandbytes","compressed-tensors"]
         self.venv_path = venv_path
         
         # Define available parameters
