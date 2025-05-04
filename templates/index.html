@@ -102,12 +102,12 @@
         .radio-group-container > label {
             margin-right: 10px;
         }
-        .radio-group {
+        .radio-group, .checkbox-group {
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
         }
-        .radio-group label {
+        .radio-group label, .checkbox-group label {
             display: inline-block;
             padding: 5px 10px;
             background-color: #f0f0f0;
@@ -115,10 +115,10 @@
             cursor: pointer;
             transition: background-color 0.3s, color 0.3s;
         }
-        .radio-group input[type="radio"] {
+        .radio-group input[type="radio"], .checkbox-group input[type="checkbox"] {
             display: none;
         }
-        .radio-group input[type="radio"]:checked + label {
+        .radio-group input[type="radio"]:checked + label, .checkbox-group input[type="checkbox"]:checked + label {
             background-color: #007bff;
             color: white;
         }
