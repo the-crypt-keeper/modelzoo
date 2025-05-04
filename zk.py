@@ -242,9 +242,6 @@ class ZooKeeper:
             if not environment:
                 return jsonify({'success': False, 'error': f'Environment {env_name} not found'}), 400
             environments.append(environment)
-            
-        if not environments:
-            return jsonify({'success': False, 'error': 'No valid environments specified'}), 400
 
         # Create listener
         listener = Listener('http', '0.0.0.0', port)
