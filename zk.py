@@ -326,7 +326,7 @@ class ZooKeeper:
                         'port': rmodel.listener.port
                     },
                     'source': 'local',
-                    'environment': rmodel.environment.name
+                    'environment': rmodel.environment_set.get_combined_name()
                 })
         
         # Add remote models
