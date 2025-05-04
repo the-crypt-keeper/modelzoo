@@ -42,6 +42,78 @@ class Environment:
         vars_str = ', '.join(f'{k}={v}' for k, v in self.vars.items())
         return f"Environment({self.name}: {vars_str})"
 
+class EnvironmentSet:
+    """A set of Environment objects that can be combined."""
+    
+    def __init__(self, environments: List[Environment] = None):
+        """Initialize an EnvironmentSet with optional list of environments.
+        
+        Args:
+            environments (List[Environment], optional): Initial environments to add
+        """
+        self.environments = environments or []
+    
+    def add(self, environment: Environment) -> None:
+        """Add an environment to the set.
+        
+        Args:
+            environment (Environment): Environment to add
+        """
+        self.environments.append(environment)
+    
+    def get_combined_name(self) -> str:
+        """Generate a combined name from all environments in the set.
+        
+        Returns:
+            str: Combined name using + as separator
+        """
+        if not self.environments:
+            return "empty"
+        return "+".join(env.name for env in self.environments)
+    
+    def get_combined_vars(self) -> Dict[str, str]:
+        """Merge environment variables from all environments in the set.
+        
+        When keys conflict, values are merged with comma separator.
+        
+        Returns:
+            Dict[str, str]: Combined environment variables
+        """
+        combined_vars = {}
+        
+        for env in self.environments:
+            for key, value in env.vars.items():
+                if key in combined_vars:
+                    # If key already exists, merge values with comma
+                    combined_vars[key] = f"{combined_vars[key]},{value}"
+                else:
+                    combined_vars[key] = value
+        
+        return combined_vars
+    
+    def to_environment(self) -> Environment:
+        """Convert the environment set to a single Environment object.
+        
+        Returns:
+            Environment: A new Environment with combined name and vars
+        """
+        return Environment(
+            name=self.get_combined_name(),
+            vars=self.get_combined_vars()
+        )
+    
+    def __str__(self) -> str:
+        """Return string representation of EnvironmentSet.
+        
+        Returns:
+            str: Human readable environment set description
+        """
+        if not self.environments:
+            return "EnvironmentSet(empty)"
+        
+        env_strs = [str(env) for env in self.environments]
+        return f"EnvironmentSet({', '.join(env_strs)})"
+
 @dataclass
 class Listener:
     """Data class representing network binding configuration."""
