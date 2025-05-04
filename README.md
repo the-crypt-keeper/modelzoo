@@ -42,10 +42,11 @@ ModelZoo is composed of several key components:
 2. **Models**: Data objects representing models.
 3. **[Runtimes](#runtimes)**: Backends that can serve models in specific environments.
 4. **[Environments](#environments)**: Named GPU Configurations (environment variables).
-5. **[ZooKeeper](#zookeeper)**: Web application to interact with zoos, use runtimes to spawn models, interface with history and host the proxy.
-6. **Proxy**: A hybrid OpenAI-compatible (text+multimodal) and A1111-compatible (image) proxy server.
-7. **ModelHistory**: A ZooKeeper component that tracks model launch history, including frequency of use and last used configurations.
-8. **[Peers](#remote-models-peers)**: Instances of ZooKeeper running on other hosts.
+5. **EnvironmentSet**: A collection of environments that can be combined for model execution.
+6. **[ZooKeeper](#zookeeper)**: Web application to interact with zoos, use runtimes to spawn models, interface with history and host the proxy.
+7. **Proxy**: A hybrid OpenAI-compatible (text+multimodal) and A1111-compatible (image) proxy server.
+8. **ModelHistory**: A ZooKeeper component that tracks model launch history, including frequency of use and last used configurations.
+9. **[Peers](#remote-models-peers)**: Instances of ZooKeeper running on other hosts.
 
 ## Configuration
 
