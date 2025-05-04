@@ -54,7 +54,15 @@ class ModelHistory:
             with open(self.history_file, 'r') as f:
                 data = json.load(f)
                 for key, value in data.items():
+                    # Convert datetime string to datetime object
                     value['last_launch'] = datetime.fromisoformat(value['last_launch']) if value['last_launch'] else None
+                    
+                    # Ensure last_environment is a list
+                    if 'last_environment' in value and value['last_environment'] is not None:
+                        if not isinstance(value['last_environment'], list):
+                            # Convert legacy string to list
+                            value['last_environment'] = [value['last_environment']]
+                    
                     self.model_info[key] = ModelLaunchInfo(**value)
         except FileNotFoundError:
             pass
