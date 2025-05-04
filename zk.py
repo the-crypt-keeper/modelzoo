@@ -238,8 +238,11 @@ class ZooKeeper:
         if custom_name:
             model.model_name = custom_name
 
+        # Create an EnvironmentSet with the environment
+        env_set = EnvironmentSet([environment])
+            
         # Spawn model
-        running_model = runtime.spawn(environment, listener, model, params)
+        running_model = runtime.spawn(env_set, listener, model, params)
         self.running_models.append(running_model)
 
         # Update launch history

@@ -91,17 +91,6 @@ class EnvironmentSet:
         
         return combined_vars
     
-    def to_environment(self) -> Environment:
-        """Convert the environment set to a single Environment object.
-        
-        Returns:
-            Environment: A new Environment with combined name and vars
-        """
-        return Environment(
-            name=self.get_combined_name(),
-            vars=self.get_combined_vars()
-        )
-    
     def __str__(self) -> str:
         """Return string representation of EnvironmentSet.
         
@@ -149,21 +138,23 @@ class Model:
 class RunningModel:
     """Class representing and controlling a running model instance."""
 
-    def __init__(self, runtime: Runtime, model: Model, environment: Environment,
+    def __init__(self, runtime: Runtime, model: Model, environment: EnvironmentSet,
                  listener: Listener, command: List[str], extra_environment: Dict[str,str] = {},
                  working_directory: str = None):
         """Initialize a new running model instance.
         
         Args:
             model (Model): The model being served
-            environment (Environment): Environment configuration
+            environment (EnvironmentSet): Environment configuration set
             listener (Listener): Network binding configuration
             command (List[str]): Command line as list of strings
             runtime (Runtime): The runtime that created this instance
+            extra_environment (Dict[str,str], optional): Additional environment variables
+            working_directory (str, optional): Working directory for the process
         """
         self.model = model
         self.extra_environment = extra_environment
-        self.environment = environment
+        self.environment_set = environment
         self.listener = listener
         self.command = command
         self.runtime = runtime
@@ -184,7 +175,8 @@ class RunningModel:
         """Seed the logs with command and environment information."""
         self.log_buffer.append("Command: " + " ".join(self.command))
         self.log_buffer.append("Environment:")
-        for key, value in self.environment.vars.items():
+        env_vars = self.environment_set.get_combined_vars()
+        for key, value in env_vars.items():
             self.log_buffer.append(f"  {key}={value}")
         self.log_buffer.append("---")  # Separator
 
@@ -192,7 +184,8 @@ class RunningModel:
         """Start the underlying process and log collection."""
         # Create environment dict for subprocess
         env = os.environ.copy()
-        env.update({k: str(v) for k, v in self.environment.vars.items()})
+        env_vars = self.environment_set.get_combined_vars()
+        env.update({k: str(v) for k, v in env_vars.items()})
         env.update(self.extra_environment)
         env.update({'CUDA_DEVICE_ORDER': 'PCI_BUS_ID'})
 
@@ -294,7 +287,8 @@ class RunningModel:
         Returns:
             str: Human readable running model description
         """
-        status = "running" if self.ready() else "stopped"
+        status = "running" if self.status()["ready"] else "stopped"
         wd = f", cwd={self.working_directory}" if self.working_directory else ""
+        env_name = self.environment_set.get_combined_name()
         return (f"RunningModel({self.model.model_name} @ {self.listener}, "
-                f"runtime={self.runtime.__class__.__name__}, status={status}{wd})")
+                f"runtime={self.runtime.__class__.__name__}, env={env_name}, status={status}{wd})")

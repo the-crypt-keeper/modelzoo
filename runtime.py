@@ -60,14 +60,14 @@ class LlamaRuntime(Runtime):
         ]
 
     def spawn(self, 
-              environment: Environment, 
+              environment: Environment | EnvironmentSet, 
               listener: Listener, 
               model: Model, 
               param_list: dict[str, Any]) -> RunningModel:
         """Spawn a llama.cpp server instance.
         
         Args:
-            environment (Environment): Environment configuration
+            environment (Environment|EnvironmentSet): Environment configuration
             listener (Listener): Network binding configuration
             model (Model): Model to serve
             param_list (Dict[str, Any]): Runtime parameters
@@ -104,10 +104,13 @@ class LlamaRuntime(Runtime):
             cmd.extend(extra_args.split())
 
         listener.protocol = 'openai'
+        # Convert Environment to EnvironmentSet if needed
+        env_set = environment if isinstance(environment, EnvironmentSet) else EnvironmentSet([environment])
+        
         return RunningModel(
             runtime=self,
             model=model,
-            environment=environment,
+            environment=env_set,
             listener=listener,
             command=cmd
         )
@@ -174,14 +177,14 @@ class VLLMRuntime(Runtime):
         ]
 
     def spawn(self, 
-              environment: Environment, 
+              environment: Environment | EnvironmentSet, 
               listener: Listener, 
               model: Model, 
               param_list: dict[str, Any]) -> RunningModel:
         """Spawn a vLLM server instance.
         
         Args:
-            environment (Environment): Environment configuration
+            environment (Environment|EnvironmentSet): Environment configuration
             listener (Listener): Network binding configuration
             model (Model): Model to serve
             param_list (Dict[str, Any]): Runtime parameters
@@ -230,10 +233,13 @@ echo env: $CUDA_VISIBLE_DEVICES $CUDA_DEVICE_ORDER
 """)
         os.chmod(script_path, 0o755)
         listener.protocol = 'openai'
+        # Convert Environment to EnvironmentSet if needed
+        env_set = environment if isinstance(environment, EnvironmentSet) else EnvironmentSet([environment])
+        
         return RunningModel(
             runtime=self,
             model=model,
-            environment=environment,
+            environment=env_set,
             listener=listener,
             command=[script_path]
         )
@@ -278,7 +284,7 @@ class LlamaSrbRuntime(Runtime):
         ]
 
     def spawn(self, 
-              environment: Environment, 
+              environment: Environment | EnvironmentSet, 
               listener: Listener, 
               model: Model, 
               param_list: dict[str, Any]) -> RunningModel:
@@ -301,10 +307,13 @@ class LlamaSrbRuntime(Runtime):
         working_dir = os.path.dirname(os.path.abspath(self.script_path))
 
         listener.protocol = 'openai'
+        # Convert Environment to EnvironmentSet if needed
+        env_set = environment if isinstance(environment, EnvironmentSet) else EnvironmentSet([environment])
+        
         return RunningModel(
             runtime=self,
             model=model,
-            environment=environment,
+            environment=env_set,
             listener=listener,
             command=cmd,
             working_directory=working_dir
@@ -341,14 +350,14 @@ class LiteLLMRuntime(Runtime):
         ]
 
     def spawn(self, 
-              environment: Environment, 
+              environment: Environment | EnvironmentSet, 
               listener: Listener, 
               model: Model, 
               param_list: dict[str, Any]) -> RunningModel:
         """Spawn a LiteLLM server instance.
         
         Args:
-            environment (Environment): Environment configuration
+            environment (Environment|EnvironmentSet): Environment configuration
             listener (Listener): Network binding configuration
             model (Model): Model to serve
             param_list (Dict[str, Any]): Runtime parameters
@@ -389,10 +398,13 @@ class LiteLLMRuntime(Runtime):
         # Set protocol based on model name
         listener.protocol = 'dall-e' if 'dall-e' in model.model_name.lower() else 'openai'
         
+        # Convert Environment to EnvironmentSet if needed
+        env_set = environment if isinstance(environment, EnvironmentSet) else EnvironmentSet([environment])
+        
         return RunningModel(
             runtime=self,
             model=model,
-            environment=environment,
+            environment=env_set,
             listener=listener,
             command=cmd,
             extra_environment=extra_env
@@ -458,14 +470,14 @@ class KoboldCppRuntime(Runtime):
         ]
 
     def spawn(self, 
-              environment: Environment, 
+              environment: Environment | EnvironmentSet, 
               listener: Listener, 
               model: Model, 
               param_list: dict[str, Any]) -> RunningModel:
         """Spawn a KoboldCpp server instance.
         
         Args:
-            environment (Environment): Environment configuration
+            environment (Environment|EnvironmentSet): Environment configuration
             listener (Listener): Network binding configuration
             model (Model): Model to serve
             param_list (Dict[str, Any]): Runtime parameters
@@ -523,10 +535,13 @@ class KoboldCppRuntime(Runtime):
         else:
             listener.protocol = 'openai'
 
+        # Convert Environment to EnvironmentSet if needed
+        env_set = environment if isinstance(environment, EnvironmentSet) else EnvironmentSet([environment])
+        
         return RunningModel(
             runtime=self,            
             model=model,
-            environment=environment,
+            environment=env_set,
             listener=listener,
             command=cmd,
             working_directory=working_dir
@@ -611,14 +626,14 @@ class SDServerRuntime(Runtime):
         return ""
 
     def spawn(self, 
-              environment: Environment, 
+              environment: Environment | EnvironmentSet, 
               listener: Listener, 
               model: Model, 
               param_list: dict[str, Any]) -> RunningModel:
         """Spawn a SD Server instance.
         
         Args:
-            environment (Environment): Environment configuration
+            environment (Environment|EnvironmentSet): Environment configuration
             listener (Listener): Network binding configuration
             model (Model): Model to serve
             param_list (Dict[str, Any]): Runtime parameters
@@ -682,10 +697,13 @@ class SDServerRuntime(Runtime):
             cmd.extend(extra_args.split())
 
         listener.protocol = 'sd-server'
+        # Convert Environment to EnvironmentSet if needed
+        env_set = environment if isinstance(environment, EnvironmentSet) else EnvironmentSet([environment])
+        
         return RunningModel(
             runtime=self,
             model=model,
-            environment=environment,
+            environment=env_set,
             listener=listener,
             command=cmd
         )
@@ -763,14 +781,14 @@ class TabbyRuntime(Runtime):
         ]
 
     def spawn(self, 
-              environment: Environment, 
+              environment: Environment | EnvironmentSet, 
               listener: Listener, 
               model: Model, 
               param_list: dict[str, Any]) -> RunningModel:
         """Spawn a TabbyAPI server instance.
         
         Args:
-            environment (Environment): Environment configuration
+            environment (Environment|EnvironmentSet): Environment configuration
             listener (Listener): Network binding configuration
             model (Model): Model to serve
             param_list (Dict[str, Any]): Runtime parameters
@@ -819,10 +837,13 @@ class TabbyRuntime(Runtime):
             cmd.extend(extra_args.split())
 
         listener.protocol = 'openai'
+        # Convert Environment to EnvironmentSet if needed
+        env_set = environment if isinstance(environment, EnvironmentSet) else EnvironmentSet([environment])
+        
         return RunningModel(
             runtime=self,
             model=model,
-            environment=environment,
+            environment=env_set,
             listener=listener,
             command=cmd
         )
