@@ -185,9 +185,9 @@
             </div>
             <div class="radio-group-container">
                 <label>ENV:</label>
-                <div id="env-select" class="radio-group">
+                <div id="env-select" class="checkbox-group">
                     {% for name, env in environments.items() %}
-                    <input type="radio" name="environment" id="env-{{ loop.index }}" data-env-name="{{ name }}" value="{{ name }}" {% if loop.first %}checked{% endif %}>
+                    <input type="checkbox" name="environment" id="env-{{ loop.index }}" data-env-name="{{ name }}" value="{{ name }}">
                     <label for="env-{{ loop.index }}">{{ name }}</label>
                     {% endfor %}
                 </div>
@@ -352,12 +352,15 @@
                     `);
                 });
                 
-                // Set last used environment
-                if (lastLaunchInfo.last_environment) {
-                    $(`#env-select input[data-env-name="${lastLaunchInfo.last_environment}"]`).prop('checked', true);
-                } else {
-                    // Set the first environment as default if no last environment
-                    $('#env-select input:first').prop('checked', true);
+                // Set last used environments
+                // Clear all checkboxes first
+                $('#env-select input[type="checkbox"]').prop('checked', false);
+                
+                if (lastLaunchInfo.last_environment && Array.isArray(lastLaunchInfo.last_environment)) {
+                    // Check each environment in the array
+                    lastLaunchInfo.last_environment.forEach(envName => {
+                        $(`#env-select input[data-env-name="${envName}"]`).prop('checked', true);
+                    });
                 }
                 
                 loadRuntimeParams(lastLaunchInfo.last_params);
@@ -417,7 +420,17 @@
             const zooName = $('input[name="zoo"]:checked').val();
             const modelId = $('#launch-dialog').data('modelId');
             const runtime = $('input[name="runtime"]:checked').val();
-            const env = $('input[name="environment"]:checked').val();
+            // Get all checked environment checkboxes
+            const envs = [];
+            $('input[name="environment"]:checked').each(function() {
+                envs.push($(this).val());
+            });
+            
+            // Validate at least one environment is selected
+            if (envs.length === 0) {
+                $('#launch-error').text('Please select at least one environment').show();
+                return;
+            }
             const port = $('#port-input').val();
             
             const params = {};
@@ -446,7 +459,7 @@
                     model_id: modelId,
                     custom_name: $('#custom-name').val(),
                     runtime: runtime,
-                    environment: env,
+                    environment: envs,
                     port: parseInt(port, 10),
                     params: params
                 }),
