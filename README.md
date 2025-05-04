@@ -75,11 +75,9 @@ envs:
    - name: "P40/0"
      vars:
         CUDA_VISIBLE_DEVICES: 0
-   - name: "P40/0+1"
+   - name: "P40/1"
      vars:
-        CUDA_VISIBLE_DEVICES: 0,1
-   - name: "No GPU"
-     vars: {}        
+        CUDA_VISIBLE_DEVICES: 1
 
 peers:
    - host: another-host
@@ -245,9 +243,12 @@ envs:
    - name: "RTX3090"
      vars:
         CUDA_VISIBLE_DEVICES: 0
+   - name: "P40"
+     vars:
+        CUDA_VISIBLE_DEVICES: 1
 ```
 
-Multiple enviroments may be pre-defined in the configuration file.
+Multiple enviroments may be pre-defined in the configuration file, and multiple enviroments can be selected when launching model (any conflicting values will be merged with a comma).
 
 ### Remote Models (Peers)
 
