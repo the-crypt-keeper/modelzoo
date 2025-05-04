@@ -66,7 +66,7 @@ class ModelHistory:
         with open(self.history_file, 'w') as f:
             json.dump(data, f, indent=2)
 
-    def update_model_launch(self, zoo_name: str, model_name: str, runtime: str, environment: str, params: Dict):
+    def update_model_launch(self, zoo_name: str, model_name: str, runtime: str, environment: str | List[str], params: Dict):
         key = f"{zoo_name}:{model_name}"
         if key not in self.model_info:
             self.model_info[key] = ModelLaunchInfo(zoo_name, model_name)
@@ -75,7 +75,13 @@ class ModelHistory:
         info.launch_count += 1
         info.last_launch = datetime.now()
         info.last_runtime = runtime
-        info.last_environment = environment
+        
+        # Handle either a single environment name or a list of environment names
+        if isinstance(environment, list):
+            info.last_environment = "+".join(environment)
+        else:
+            info.last_environment = environment
+            
         info.last_params = params
         
         self.save_history()
@@ -211,7 +217,7 @@ class ZooKeeper:
         model_id = data['model_id']
         custom_name = data.get('custom_name')
         runtime_name = data['runtime']
-        env_name = data['environment']
+        env_names = data['environment'] if isinstance(data['environment'], list) else [data['environment']]
         port = int(data['port'])
         params = data['params']
 
@@ -224,12 +230,21 @@ class ZooKeeper:
         if not model:
             return jsonify({'success': False, 'error': 'Model not found'}), 404
 
-        # Get runtime and environment
+        # Get runtime and environments
         runtime = self.runtimes.get(runtime_name)
-        environment = self.environments.get(env_name)
-        
-        if not runtime or not environment:
-            return jsonify({'success': False, 'error': 'Invalid runtime or environment'}), 400
+        if not runtime:
+            return jsonify({'success': False, 'error': 'Invalid runtime'}), 400
+            
+        # Build environment set from the list of environment names
+        environments = []
+        for env_name in env_names:
+            environment = self.environments.get(env_name)
+            if not environment:
+                return jsonify({'success': False, 'error': f'Environment {env_name} not found'}), 400
+            environments.append(environment)
+            
+        if not environments:
+            return jsonify({'success': False, 'error': 'No valid environments specified'}), 400
 
         # Create listener
         listener = Listener('http', '0.0.0.0', port)
@@ -238,15 +253,15 @@ class ZooKeeper:
         if custom_name:
             model.model_name = custom_name
 
-        # Create an EnvironmentSet with the environment
-        env_set = EnvironmentSet([environment])
+        # Create an EnvironmentSet with all the environments
+        env_set = EnvironmentSet(environments)
             
         # Spawn model
         running_model = runtime.spawn(env_set, listener, model, params)
         self.running_models.append(running_model)
 
         # Update launch history
-        self.model_history.update_model_launch(model.zoo_name, model.model_name, runtime_name, env_name, params)
+        self.model_history.update_model_launch(model.zoo_name, model.model_name, runtime_name, env_names, params)
 
         return jsonify({'success': True})
 
