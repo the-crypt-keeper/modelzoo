@@ -66,7 +66,7 @@ class ModelHistory:
         with open(self.history_file, 'w') as f:
             json.dump(data, f, indent=2)
 
-    def update_model_launch(self, zoo_name: str, model_name: str, runtime: str, environment: str | List[str], params: Dict):
+    def update_model_launch(self, zoo_name: str, model_name: str, runtime: str, environment: List[str], params: Dict):
         key = f"{zoo_name}:{model_name}"
         if key not in self.model_info:
             self.model_info[key] = ModelLaunchInfo(zoo_name, model_name)
@@ -75,13 +75,7 @@ class ModelHistory:
         info.launch_count += 1
         info.last_launch = datetime.now()
         info.last_runtime = runtime
-        
-        # Handle either a single environment name or a list of environment names
-        if isinstance(environment, list):
-            info.last_environment = "+".join(environment)
-        else:
-            info.last_environment = environment
-            
+        info.last_environment = environment  # Always store as a list
         info.last_params = params
         
         self.save_history()
