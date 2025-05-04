@@ -426,11 +426,6 @@
                 envs.push($(this).val());
             });
             
-            // Validate at least one environment is selected
-            if (envs.length === 0) {
-                $('#launch-error').text('Please select at least one environment').show();
-                return;
-            }
             const port = $('#port-input').val();
             
             const params = {};
