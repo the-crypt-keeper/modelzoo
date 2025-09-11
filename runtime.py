@@ -164,6 +164,21 @@ class VLLMRuntime(Runtime):
                 param_description="Allow remote code execution",
                 param_type="bool",
                 param_default=False
+            ),
+            RuntimeParameter(
+                param_name="attention_backend",
+                param_description="Attention backend implementation",
+                param_type="enum",
+                param_default="FLASH_ATTN",
+                param_enum={
+                    "Flash Attention": "FLASH_ATTN",
+                    "FlashInfer": "FLASHINFER",
+                    "XFormers": "XFORMERS",
+                    "Differential Flash Attention": "DIFFERENTIAL_FLASH_ATTN",
+                    "Dual Chunk Flash Attention": "DUAL_CHUNK_FLASH_ATTN",
+                    "FlashMLA": "FLASHMLA",
+                    "Triton MLA": "TRITON_MLA"
+                }
             ),            
             RuntimeParameter(
                 param_name="extra_args",
@@ -228,13 +243,20 @@ echo env: $CUDA_VISIBLE_DEVICES $CUDA_DEVICE_ORDER
 {vllm_cmd}
 """)
         os.chmod(script_path, 0o755)
+        
+        # Prepare extra environment variables
+        attention_backend_param = next(param for param in self.runtime_params if param.param_name == "attention_backend")
+        attention_backend_value = attention_backend_param.param_enum[param_list.get("attention_backend", "Flash Attention")]
+        extra_env = {"VLLM_ATTENTION_BACKEND": attention_backend_value}
+        
         listener.protocol = 'openai'
         return RunningModel(
             runtime=self,
             model=model,
             environment=environment,
             listener=listener,
-            command=[script_path]
+            command=[script_path],
+            extra_environment=extra_env
         )
 
 class LlamaSrbRuntime(Runtime):
