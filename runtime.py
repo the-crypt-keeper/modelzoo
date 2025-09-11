@@ -217,8 +217,7 @@ class VLLMRuntime(Runtime):
             
         # Add extra arguments if provided
         extra_args = param_list.get("extra_args", "").strip()
-        if extra_args:
-            vllm_cmd.extend(extra_args.split())
+        if extra_args: vllm_cmd += " "+extra_args
             
         # Create temporary shell script
         script_fd, script_path = tempfile.mkstemp(prefix='vllm_', suffix='.sh')
@@ -700,7 +699,7 @@ class TabbyRuntime(Runtime):
             script_path (str): Path to TabbyAPI shell script
         """
         self.runtime_name = name
-        self.runtime_formats = ["gptq","exl2"]
+        self.runtime_formats = ["fp16","gptq","exl2","exl3"]
         self.script_path = script_path
         
         # Define available parameters
