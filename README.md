@@ -47,6 +47,7 @@ ModelZoo is composed of several key components:
 7. **Proxy**: A hybrid OpenAI-compatible (text+multimodal) and A1111-compatible (image) proxy server.
 8. **ModelHistory**: A ZooKeeper component that tracks model launch history, including frequency of use and last used configurations.
 9. **[Peers](#remote-models-peers)**: Instances of ZooKeeper running on other hosts.
+10. **[ModelMetrics](#model-metrics)**: Standardized metrics collection system for monitoring running models.
 
 ## Configuration
 
@@ -267,3 +268,69 @@ peers:
 ```
 
 The web interface will display the status and running models of each configured peer, allowing you to manage a distributed setup of ModelZoo instances.
+
+## Model Metrics
+
+ModelZoo includes a standardized metrics collection system that gathers performance data from running models. This system provides real-time insights into model utilization and request queuing.
+
+### How It Works
+
+1. **Metrics Endpoints**: Each protocol defines a `metrics` endpoint (e.g., `/metrics` for OpenAI-compatible servers)
+2. **Metrics Adapters**: Protocol-specific adapters parse the raw metrics data into a standardized format
+3. **Caching**: Metrics are cached using the same interval as status checks (30 seconds) to reduce overhead
+4. **Availability**: Metrics are only collected after a model becomes ready for the first time
+
+### Standardized Metrics
+
+ModelZoo extracts three key metrics and presents them in a standardized format:
+
+- **`num_running`**: Number of requests currently being processed
+- **`num_waiting`**: Number of requests waiting in the queue
+- **`kv_utilization`**: Key-value cache utilization as a percentage (0.0 to 1.0)
+
+### Supported Formats
+
+Currently, the system includes built-in support for:
+
+- **vLLM Prometheus Metrics**: Parses vLLM's prometheus-format metrics endpoint
+  - Maps `vllm:num_requests_running` to `num_running`
+  - Maps `vllm:num_requests_waiting` to `num_waiting` 
+  - Maps `vllm:kv_cache_usage_perc` to `kv_utilization`
+
+### API Integration
+
+Metrics are automatically included in API responses:
+
+- **`/v1/models`**: OpenAI-compatible endpoint includes metrics for each model
+- **Web Interface**: Displays real-time metrics in the model management interface
+- **Peer Integration**: Metrics from remote peers are also collected and displayed
+
+### Example Metrics Response
+
+```json
+{
+  "data": [
+    {
+      "id": "my-model",
+      "owned_by": "local",
+      "running": true,
+      "ready": true,
+      "metrics": {
+        "num_running": 2,
+        "num_waiting": 5,
+        "kv_utilization": 0.85
+      }
+    }
+  ]
+}
+```
+
+### Extending Metrics Support
+
+To add metrics support for new runtimes:
+
+1. Define a `metrics` endpoint in the protocol configuration
+2. Optionally create a custom `metrics_adapter` function to parse the raw metrics
+3. The adapter should return a `ModelMetrics` object with the standardized fields
+
+The metrics system is designed to be extensible, allowing easy integration of new model servers and metrics formats.
