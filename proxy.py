@@ -30,7 +30,6 @@ class ProxyServer:
          self.app.route('/sdapi/v1/img2img', methods=['POST'])(self.handle_img2img)
 
      def get_models(self):
-         model_metrics = {}  # model_name -> list of metrics
          unique_models = {}
          
          # Get all available models and filter for those with text capabilities
@@ -47,9 +46,9 @@ class ProxyServer:
                          "id": model_name,
                          "owned_by": model['source'],
                          "running": model.get('status', {}).get('running', False),
-                         "ready": model.get('status', {}).get('ready', False)
+                         "ready": model.get('status', {}).get('ready', False),
+                         "metrics": []
                      }
-                     model_metrics[model_name] = []
                  else:
                      # Update running/ready status (true if any instance is running/ready)
                      existing = unique_models[model_name]
@@ -58,14 +57,16 @@ class ProxyServer:
                  
                  # Collect metrics
                  if 'metrics' in model and model['metrics']:
-                     model_metrics[model_name].append(model['metrics'])
+                     unique_models[model_name]["metrics"].append(model['metrics'])
          
          # Aggregate metrics
-         for model_name, metrics_list in model_metrics.items():
-             if metrics_list:
-                 unique_models[model_name]["num_running"] = sum(m.num_running for m in metrics_list)
-                 unique_models[model_name]["num_waiting"] = sum(m.num_waiting for m in metrics_list)
-                 unique_models[model_name]["kv_utilization"] = sum(m.kv_utilization for m in metrics_list) / len(metrics_list)
+         for model_data in unique_models.values():
+             if model_data["metrics"]:
+                 metrics_list = model_data["metrics"]
+                 model_data["num_running"] = sum(m.num_running for m in metrics_list)
+                 model_data["num_waiting"] = sum(m.num_waiting for m in metrics_list)
+                 model_data["kv_utilization"] = sum(m.kv_utilization for m in metrics_list) / len(metrics_list)
+             del model_data["metrics"]  # Remove temporary metrics list
          
          return jsonify({"data": list(unique_models.values())})
 
