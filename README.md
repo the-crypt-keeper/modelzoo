@@ -315,11 +315,9 @@ Metrics are automatically included in API responses:
       "owned_by": "local",
       "running": true,
       "ready": true,
-      "metrics": {
-        "num_running": 2,
-        "num_waiting": 5,
-        "kv_utilization": 0.85
-      }
+      "num_running": 2,
+      "num_waiting": 5,
+      "kv_utilization": 0.85
     }
   ]
 }
