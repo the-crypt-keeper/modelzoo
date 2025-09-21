@@ -49,11 +49,9 @@ class ProxyServer:
                  
                  # Add metrics if available
                  if 'metrics' in model and model['metrics']:
-                     model_data["metrics"] = {
-                         "num_running": model['metrics'].num_running,
-                         "num_waiting": model['metrics'].num_waiting,
-                         "kv_utilization": model['metrics'].kv_utilization
-                     }
+                     model_data["num_running"] = model['metrics'].num_running
+                     model_data["num_waiting"] = model['metrics'].num_waiting
+                     model_data["kv_utilization"] = model['metrics'].kv_utilization
                  
                  unique_models[model['model_name']] = model_data
          
