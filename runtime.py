@@ -123,7 +123,7 @@ class VLLMRuntime(Runtime):
             venv_path (str): Path to virtual environment containing vllm
         """
         self.runtime_name = name
-        self.runtime_formats = ["gguf", "fp16", "awq", "gptq", "bitsandbytes","compressed-tensors"]
+        self.runtime_formats = ["gguf", "fp16", "awq", "gptq", "bitsandbytes","compressed-tensors","awq_marlin","auto-round"]
         self.venv_path = venv_path
         
         # Define available parameters
@@ -169,10 +169,10 @@ class VLLMRuntime(Runtime):
                 param_name="attention_backend",
                 param_description="Attention backend implementation",
                 param_type="enum",
-                param_default="FLASH_ATTN",
+                param_default = "Flash Attention",
                 param_enum={
-                    "Flash Attention": "FLASH_ATTN",
                     "FlashInfer": "FLASHINFER",
+                    "Flash Attention": "FLASH_ATTN",
                     "XFormers": "XFORMERS",
                     "Differential Flash Attention": "DIFFERENTIAL_FLASH_ATTN",
                     "Dual Chunk Flash Attention": "DUAL_CHUNK_FLASH_ATTN",
