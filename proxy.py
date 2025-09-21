@@ -43,10 +43,8 @@ class ProxyServer:
                  model_data = {
                      "id": model['model_name'],
                      "owned_by": model['source'],
-                     "status": {
-                         "running": model.get('status', {}).get('running', False),
-                         "ready": model.get('status', {}).get('ready', False)
-                     }
+                     "running": model.get('status', {}).get('running', False),
+                     "ready": model.get('status', {}).get('ready', False)                     
                  }
                  
                  # Add metrics if available

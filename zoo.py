@@ -134,6 +134,8 @@ class FolderZoo(Zoo):
                                 model_format = 'awq'
                             elif 'exl2' in folder_name:
                                 model_format = 'exl2'
+                            elif 'exl3' in folder_name:
+                                model_format = 'exl3'
                             elif 'fp16' in folder_name:
                                 model_format = 'fp16'
                                 
