@@ -193,15 +193,16 @@ def parse_prometheus_metrics(text: str) -> List[Dict]:
     
     return metrics
 
-def extract_model_metrics(prometheus_metrics: List[Dict]) -> ModelMetrics:
-    """Extract standardized model metrics from prometheus metrics.
+def vllm_metrics(text: str) -> ModelMetrics:
+    """Extract standardized model metrics from vLLM prometheus metrics.
     
     Args:
-        prometheus_metrics (List[Dict]): Parsed prometheus metrics
+        text (str): Raw prometheus format metrics text
         
     Returns:
         ModelMetrics: Standardized metrics object
     """
+    prometheus_metrics = parse_prometheus_metrics(text)
     metrics = ModelMetrics()
     
     for metric in prometheus_metrics:
@@ -377,11 +378,8 @@ class RunningModel:
                 return None
                 
             # Apply metrics adapter if available
-            metrics_adapter = protocol_def.get('metrics_adapter', parse_prometheus_metrics)
-            prometheus_metrics = metrics_adapter(response.text)
-            
-            # Extract standardized metrics
-            model_metrics = extract_model_metrics(prometheus_metrics)
+            metrics_adapter = protocol_def.get('metrics_adapter', vllm_metrics)
+            model_metrics = metrics_adapter(response.text)
             
             # Cache the result
             self._metrics_cache = model_metrics
