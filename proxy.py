@@ -37,23 +37,59 @@ class ProxyServer:
          for model in available_models:
              protocol = model['listener']['protocol']
              if (protocol in PROTOCOLS and 
-                 (PROTOCOLS[protocol]['completions'] or PROTOCOLS[protocol]['chat_completions']) and
-                 model['model_name'] not in unique_models):
+                 (PROTOCOLS[protocol]['completions'] or PROTOCOLS[protocol]['chat_completions'])):
                  
-                 model_data = {
-                     "id": model['model_name'],
-                     "owned_by": model['source'],
-                     "running": model.get('status', {}).get('running', False),
-                     "ready": model.get('status', {}).get('ready', False)                     
-                 }
+                 model_name = model['model_name']
                  
-                 # Add metrics if available
-                 if 'metrics' in model and model['metrics']:
-                     model_data["num_running"] = model['metrics'].num_running
-                     model_data["num_waiting"] = model['metrics'].num_waiting
-                     model_data["kv_utilization"] = model['metrics'].kv_utilization
-                 
-                 unique_models[model['model_name']] = model_data
+                 if model_name not in unique_models:
+                     # First instance of this model
+                     model_data = {
+                         "id": model_name,
+                         "owned_by": model['source'],
+                         "running": model.get('status', {}).get('running', False),
+                         "ready": model.get('status', {}).get('ready', False)
+                     }
+                     
+                     # Initialize metrics if available
+                     if 'metrics' in model and model['metrics']:
+                         model_data["num_running"] = model['metrics'].num_running
+                         model_data["num_waiting"] = model['metrics'].num_waiting
+                         model_data["kv_utilization"] = model['metrics'].kv_utilization
+                         model_data["_kv_util_count"] = 1  # Track instances for averaging
+                     
+                     unique_models[model_name] = model_data
+                 else:
+                     # Additional instance of existing model - aggregate metrics
+                     existing = unique_models[model_name]
+                     
+                     # Update running/ready status (true if any instance is running/ready)
+                     existing["running"] = existing["running"] or model.get('status', {}).get('running', False)
+                     existing["ready"] = existing["ready"] or model.get('status', {}).get('ready', False)
+                     
+                     # Aggregate metrics if available
+                     if 'metrics' in model and model['metrics']:
+                         if "num_running" in existing:
+                             # Add counters
+                             existing["num_running"] += model['metrics'].num_running
+                             existing["num_waiting"] += model['metrics'].num_waiting
+                             
+                             # Track KV utilization for averaging
+                             existing["kv_utilization"] = (
+                                 (existing["kv_utilization"] * existing["_kv_util_count"] + 
+                                  model['metrics'].kv_utilization) / (existing["_kv_util_count"] + 1)
+                             )
+                             existing["_kv_util_count"] += 1
+                         else:
+                             # First metrics for this model
+                             existing["num_running"] = model['metrics'].num_running
+                             existing["num_waiting"] = model['metrics'].num_waiting
+                             existing["kv_utilization"] = model['metrics'].kv_utilization
+                             existing["_kv_util_count"] = 1
+         
+         # Clean up temporary counting fields
+         for model_data in unique_models.values():
+             if "_kv_util_count" in model_data:
+                 del model_data["_kv_util_count"]
          
          return jsonify({"data": list(unique_models.values())})
 
