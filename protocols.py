@@ -79,6 +79,7 @@ PROTOCOLS = {
         'chat_completions': '/v1/chat/completions',
         'txt2img': None,
         'img2img': None,
+        'metrics': '/metrics',
     },    
     'a1111': {
         'health_check': '/sdapi/v1/sd-models',
