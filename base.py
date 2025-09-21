@@ -6,6 +6,7 @@ from collections import deque
 import requests
 import os
 import signal
+import time
 from protocols import PROTOCOLS
 
 class Runtime:
@@ -137,6 +138,9 @@ class Model:
 
 class RunningModel:
     """Class representing and controlling a running model instance."""
+    
+    # Status cache polling interval in seconds
+    STATUS_CACHE_INTERVAL = 30
 
     def __init__(self, runtime: Runtime, model: Model, environment: EnvironmentSet,
                  listener: Listener, command: List[str], extra_environment: Dict[str,str] = {},
@@ -164,6 +168,11 @@ class RunningModel:
         self._log_thread = None
         self._running = False
         self._pgid = None
+        
+        # Status caching
+        self._status_cache = None
+        self._status_cache_time = 0
+        self._cache_activated = False
         
         # Seed the logs with command and environment
         self._seed_logs()
@@ -224,9 +233,29 @@ class RunningModel:
         Returns:
             dict: A dictionary containing 'running' and 'ready' status
         """
+        current_time = time.time()
+        
+        # If cache is activated and still valid, return cached status
+        if (self._cache_activated and 
+            self._status_cache is not None and 
+            current_time - self._status_cache_time < self.STATUS_CACHE_INTERVAL):
+            return self._status_cache
+        
+        # Check actual status
         running = self.process is not None and self.process.poll() is None
         ready = running and self._is_ready()
-        return {"running": running, "ready": ready}
+        status = {"running": running, "ready": ready}
+        
+        # Activate cache if both running and ready are true for the first time
+        if not self._cache_activated and running and ready:
+            self._cache_activated = True
+        
+        # Update cache if activated
+        if self._cache_activated:
+            self._status_cache = status
+            self._status_cache_time = current_time
+        
+        return status
 
     def _is_ready(self) -> bool:
         """Check if the model server is ready to accept requests.
