@@ -229,6 +229,10 @@ class VLLMRuntime(Runtime):
 
         if param_list.get('trust_remote_code', True):
             vllm_cmd += " --trust_remote_code"
+
+        # Add disable multimodal if enabled
+        if param_list.get('disable_multimodal', False):
+            vllm_cmd += " --limit-mm-per-prompt '{\"image\":0}'"
             
         # Add extra arguments if provided
         extra_args = param_list.get("extra_args", "").strip()
