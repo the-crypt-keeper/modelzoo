@@ -30,6 +30,7 @@ class ProxyServer:
          self.app.route('/sdapi/v1/img2img', methods=['POST'])(self.handle_img2img)
 
      def get_models(self):
+         model_metrics = {}  # model_name -> list of metrics
          unique_models = {}
          
          # Get all available models and filter for those with text capabilities
@@ -42,54 +43,29 @@ class ProxyServer:
                  model_name = model['model_name']
                  
                  if model_name not in unique_models:
-                     # First instance of this model
-                     model_data = {
+                     unique_models[model_name] = {
                          "id": model_name,
                          "owned_by": model['source'],
                          "running": model.get('status', {}).get('running', False),
                          "ready": model.get('status', {}).get('ready', False)
                      }
-                     
-                     # Initialize metrics if available
-                     if 'metrics' in model and model['metrics']:
-                         model_data["num_running"] = model['metrics'].num_running
-                         model_data["num_waiting"] = model['metrics'].num_waiting
-                         model_data["kv_utilization"] = model['metrics'].kv_utilization
-                         model_data["_kv_util_count"] = 1  # Track instances for averaging
-                     
-                     unique_models[model_name] = model_data
+                     model_metrics[model_name] = []
                  else:
-                     # Additional instance of existing model - aggregate metrics
-                     existing = unique_models[model_name]
-                     
                      # Update running/ready status (true if any instance is running/ready)
+                     existing = unique_models[model_name]
                      existing["running"] = existing["running"] or model.get('status', {}).get('running', False)
                      existing["ready"] = existing["ready"] or model.get('status', {}).get('ready', False)
-                     
-                     # Aggregate metrics if available
-                     if 'metrics' in model and model['metrics']:
-                         if "num_running" in existing:
-                             # Add counters
-                             existing["num_running"] += model['metrics'].num_running
-                             existing["num_waiting"] += model['metrics'].num_waiting
-                             
-                             # Track KV utilization for averaging
-                             existing["kv_utilization"] = (
-                                 (existing["kv_utilization"] * existing["_kv_util_count"] + 
-                                  model['metrics'].kv_utilization) / (existing["_kv_util_count"] + 1)
-                             )
-                             existing["_kv_util_count"] += 1
-                         else:
-                             # First metrics for this model
-                             existing["num_running"] = model['metrics'].num_running
-                             existing["num_waiting"] = model['metrics'].num_waiting
-                             existing["kv_utilization"] = model['metrics'].kv_utilization
-                             existing["_kv_util_count"] = 1
+                 
+                 # Collect metrics
+                 if 'metrics' in model and model['metrics']:
+                     model_metrics[model_name].append(model['metrics'])
          
-         # Clean up temporary counting fields
-         for model_data in unique_models.values():
-             if "_kv_util_count" in model_data:
-                 del model_data["_kv_util_count"]
+         # Aggregate metrics
+         for model_name, metrics_list in model_metrics.items():
+             if metrics_list:
+                 unique_models[model_name]["num_running"] = sum(m.num_running for m in metrics_list)
+                 unique_models[model_name]["num_waiting"] = sum(m.num_waiting for m in metrics_list)
+                 unique_models[model_name]["kv_utilization"] = sum(m.kv_utilization for m in metrics_list) / len(metrics_list)
          
          return jsonify({"data": list(unique_models.values())})
 
