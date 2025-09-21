@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, List, Dict
+from typing import Any, List, Dict, Optional
 import subprocess
 import threading
 from collections import deque
@@ -7,6 +7,7 @@ import requests
 import os
 import signal
 import time
+import re
 from protocols import PROTOCOLS
 
 class Runtime:
@@ -105,6 +106,16 @@ class EnvironmentSet:
         return f"EnvironmentSet({', '.join(env_strs)})"
 
 @dataclass
+class ModelMetrics:
+    """Data class representing standardized model metrics."""
+    num_running: Optional[int] = None
+    num_waiting: Optional[int] = None
+    kv_utilization: Optional[float] = None
+
+    def __str__(self) -> str:
+        return f"ModelMetrics(running={self.num_running}, waiting={self.num_waiting}, kv_util={self.kv_utilization})"
+
+@dataclass
 class Listener:
     """Data class representing network binding configuration."""
     protocol: str
@@ -135,6 +146,76 @@ class Model:
         if self.api_url is not None:            parts.append(f"api_url={self.api_url}")
         
         return ', '.join(parts) + ')'
+
+def parse_prometheus_metrics(text: str) -> List[Dict]:
+    """Parse prometheus format metrics into structured data.
+    
+    Args:
+        text (str): Prometheus format metrics text
+        
+    Returns:
+        List[Dict]: List of metrics with keys: key, tags, value
+    """
+    metrics = []
+    lines = text.strip().split('\n')
+    
+    for line in lines:
+        line = line.strip()
+        if not line or line.startswith('#'):
+            continue
+            
+        # Parse metric line: metric_name{tag1="value1",tag2="value2"} value
+        match = re.match(r'^([^{]+)(?:\{([^}]*)\})?\s+(.+)$', line)
+        if not match:
+            continue
+            
+        metric_name = match.group(1)
+        tags_str = match.group(2) or ""
+        value_str = match.group(3)
+        
+        # Parse tags
+        tags = {}
+        if tags_str:
+            tag_matches = re.findall(r'(\w+)="([^"]*)"', tags_str)
+            tags = dict(tag_matches)
+        
+        # Parse value
+        try:
+            value = float(value_str)
+        except ValueError:
+            continue
+            
+        metrics.append({
+            'key': metric_name,
+            'tags': tags,
+            'value': value
+        })
+    
+    return metrics
+
+def extract_model_metrics(prometheus_metrics: List[Dict]) -> ModelMetrics:
+    """Extract standardized model metrics from prometheus metrics.
+    
+    Args:
+        prometheus_metrics (List[Dict]): Parsed prometheus metrics
+        
+    Returns:
+        ModelMetrics: Standardized metrics object
+    """
+    metrics = ModelMetrics()
+    
+    for metric in prometheus_metrics:
+        key = metric['key']
+        value = metric['value']
+        
+        if key == 'vllm:num_requests_running':
+            metrics.num_running = int(value)
+        elif key == 'vllm:num_requests_waiting':
+            metrics.num_waiting = int(value)
+        elif key == 'vllm:kv_cache_usage_perc':
+            metrics.kv_utilization = value
+    
+    return metrics
 
 class RunningModel:
     """Class representing and controlling a running model instance."""
@@ -173,6 +254,10 @@ class RunningModel:
         self._status_cache = None
         self._status_cache_time = 0
         self._cache_activated = False
+        
+        # Metrics caching
+        self._metrics_cache = None
+        self._metrics_cache_time = 0
         
         # Seed the logs with command and environment
         self._seed_logs()
@@ -256,6 +341,56 @@ class RunningModel:
             self._status_cache_time = current_time
         
         return status
+
+    def metrics(self) -> Optional[ModelMetrics]:
+        """Get model metrics.
+        
+        Returns:
+            Optional[ModelMetrics]: Model metrics if available, None otherwise
+        """
+        # Only fetch metrics after model is ready for the first time
+        if not self._cache_activated:
+            return None
+            
+        current_time = time.time()
+        
+        # Return cached metrics if still valid
+        if (self._metrics_cache is not None and 
+            current_time - self._metrics_cache_time < self.STATUS_CACHE_INTERVAL):
+            return self._metrics_cache
+        
+        # Fetch new metrics
+        try:
+            protocol = self.listener.protocol
+            protocol_def = PROTOCOLS.get(protocol, {})
+            
+            metrics_endpoint = protocol_def.get('metrics')
+            if not metrics_endpoint:
+                return None
+                
+            response = requests.get(
+                f"http://{self.listener.host}:{self.listener.port}{metrics_endpoint}",
+                timeout=2
+            )
+            
+            if response.status_code != 200:
+                return None
+                
+            # Apply metrics adapter if available
+            metrics_adapter = protocol_def.get('metrics_adapter', parse_prometheus_metrics)
+            prometheus_metrics = metrics_adapter(response.text)
+            
+            # Extract standardized metrics
+            model_metrics = extract_model_metrics(prometheus_metrics)
+            
+            # Cache the result
+            self._metrics_cache = model_metrics
+            self._metrics_cache_time = current_time
+            
+            return model_metrics
+            
+        except requests.RequestException:
+            return None
 
     def _is_ready(self) -> bool:
         """Check if the model server is ready to accept requests.

@@ -316,7 +316,7 @@ class ZooKeeper:
         # Add local models
         if local_models:
             for rmodel in self.running_models:
-                available_models.append({
+                model_data = {
                     'model_name': rmodel.model.model_name,
                     'model_id': rmodel.model.model_id,
                     'status': rmodel.status(),
@@ -327,7 +327,14 @@ class ZooKeeper:
                     },
                     'source': 'local',
                     'environment': rmodel.environment_set.get_combined_name()
-                })
+                }
+                
+                # Add metrics if available
+                metrics = rmodel.metrics()
+                if metrics:
+                    model_data['metrics'] = metrics
+                
+                available_models.append(model_data)
         
         # Add remote models
         if remote_models:

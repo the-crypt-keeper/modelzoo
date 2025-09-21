@@ -39,10 +39,25 @@ class ProxyServer:
              if (protocol in PROTOCOLS and 
                  (PROTOCOLS[protocol]['completions'] or PROTOCOLS[protocol]['chat_completions']) and
                  model['model_name'] not in unique_models):
-                 unique_models[model['model_name']] = {
+                 
+                 model_data = {
                      "id": model['model_name'],
-                     "owned_by": model['source']
+                     "owned_by": model['source'],
+                     "status": {
+                         "running": model.get('status', {}).get('running', False),
+                         "ready": model.get('status', {}).get('ready', False)
+                     }
                  }
+                 
+                 # Add metrics if available
+                 if 'metrics' in model and model['metrics']:
+                     model_data["metrics"] = {
+                         "num_running": model['metrics'].num_running,
+                         "num_waiting": model['metrics'].num_waiting,
+                         "kv_utilization": model['metrics'].kv_utilization
+                     }
+                 
+                 unique_models[model['model_name']] = model_data
          
          return jsonify({"data": list(unique_models.values())})
 
