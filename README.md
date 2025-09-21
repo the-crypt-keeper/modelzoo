@@ -299,13 +299,7 @@ Currently, the system includes built-in support for:
 
 ### API Integration
 
-Metrics are automatically included in API responses:
-
-- **`/v1/models`**: OpenAI-compatible endpoint includes metrics for each model
-- **Web Interface**: Displays real-time metrics in the model management interface
-- **Peer Integration**: Metrics from remote peers are also collected and displayed
-
-### Example Metrics Response
+The `/v1/models` endpoint will include the 3 metric fields for all models this information is available for, for example:
 
 ```json
 {
@@ -322,13 +316,3 @@ Metrics are automatically included in API responses:
   ]
 }
 ```
-
-### Extending Metrics Support
-
-To add metrics support for new runtimes:
-
-1. Define a `metrics` endpoint in the protocol configuration
-2. Optionally create a custom `metrics_adapter` function to parse the raw metrics
-3. The adapter should return a `ModelMetrics` object with the standardized fields
-
-The metrics system is designed to be extensible, allowing easy integration of new model servers and metrics formats.
