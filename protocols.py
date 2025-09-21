@@ -73,14 +73,6 @@ PROTOCOLS = {
         }
     },
     'openai': {
-        'health_check': '/health',
-        'health_status': 200,
-        'completions': '/v1/completions',
-        'chat_completions': '/v1/chat/completions',
-        'txt2img': None,
-        'img2img': None,
-    },
-    'openai': {
         'health_check': '/v1/models',
         'health_status': 200,
         'completions': '/v1/completions',
