@@ -165,7 +165,7 @@ class RunningModel:
         self.runtime = runtime
         self.working_directory = working_directory
         self.process = None
-        self.log_buffer = deque(maxlen=100)  # Keep last 100 lines
+        self.log_buffer = deque(maxlen=500)  # Keep last 500 lines
         self._log_thread = None
         self._running = False
         self._pgid = None
