@@ -201,7 +201,7 @@ class RunningModel:
         env_vars = self.environment_set.get_combined_vars()
         env.update({k: str(v) for k, v in env_vars.items()})
         env.update(self.extra_environment)
-        env.update({'CUDA_DEVICE_ORDER': 'PCI_BUS_ID'})
+        env.update({'CUDA_DEVICE_ORDER': 'PCI_BUS_ID', 'NO_COLOR': '1'})
 
         # Start process
         self.process = subprocess.Popen(
