@@ -16,6 +16,54 @@ from runtime import *
 
 import traceback
 from functools import wraps
+import re
+
+def ansi_to_html(text):
+    """Convert ANSI escape sequences to HTML with colors."""
+    # ANSI color codes mapping
+    ansi_colors = {
+        '30': 'black', '31': 'red', '32': 'green', '33': 'yellow',
+        '34': 'blue', '35': 'magenta', '36': 'cyan', '37': 'white',
+        '90': 'gray', '91': 'lightcoral', '92': 'lightgreen', '93': 'lightyellow',
+        '94': 'lightblue', '95': 'lightpink', '96': 'lightcyan', '97': 'white'
+    }
+    
+    # Replace ANSI escape sequences with HTML spans
+    # Pattern matches: ESC[<attributes>m where attributes can be semicolon-separated
+    def replace_ansi(match):
+        codes = match.group(1).split(';')
+        styles = []
+        
+        for code in codes:
+            code = code.strip()
+            if code == '0' or code == '':  # Reset
+                return '</span>'
+            elif code == '1':  # Bold
+                styles.append('font-weight: bold')
+            elif code == '4':  # Underline
+                styles.append('text-decoration: underline')
+            elif code in ansi_colors:  # Foreground colors
+                styles.append(f'color: {ansi_colors[code]}')
+            elif code.startswith('4') and code[1:] in ansi_colors:  # Background colors
+                bg_code = code[1:]
+                if bg_code in ansi_colors:
+                    styles.append(f'background-color: {ansi_colors[bg_code]}')
+        
+        if styles:
+            return f'<span style="{"; ".join(styles)}">'
+        return ''
+    
+    # Remove existing spans first to avoid nesting issues
+    text = re.sub(r'</span>', '', text)
+    
+    # Replace ANSI codes with HTML
+    text = re.sub(r'\x1b\[([0-9;]*)m', replace_ansi, text)
+    
+    # Ensure we close any unclosed spans at the end
+    if '<span' in text and text.count('<span') > text.count('</span>'):
+        text += '</span>'
+    
+    return text
 
 def exception_handler(f):
     @wraps(f)
@@ -279,9 +327,12 @@ class ZooKeeper:
         model_idx = data.get('idx')
         model_idx = int(model_idx) if model_idx is not None else None
         if model_idx is not None and 0 <= model_idx < len(self.running_models):
+            raw_logs = self.running_models[model_idx].logs()
+            # Convert ANSI escape sequences to HTML
+            html_logs = [ansi_to_html(log) for log in raw_logs]
             return jsonify({
                 'success': True,
-                'logs': self.running_models[model_idx].logs()
+                'logs': html_logs
             })
         return jsonify({'success': False, 'error': 'Model not found'}), 404
 
