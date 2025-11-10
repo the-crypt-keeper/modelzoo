@@ -160,17 +160,24 @@ class VLLMRuntime(Runtime):
                 param_default=True
             ),
             RuntimeParameter(
-                param_name="trust_remote_code",
-                param_description="Allow remote code execution",
+                param_name="disable_multimodal",
+                param_description="Disable multimodal",
                 param_type="bool",
                 param_default=False
             ),
             RuntimeParameter(
+                param_name="trust_remote_code",
+                param_description="Allow remote code execution",
+                param_type="bool",
+                param_default=False
+            ),            
+            RuntimeParameter(
                 param_name="attention_backend",
                 param_description="Attention backend implementation",
                 param_type="enum",
-                param_default = "Flash Attention",
+                param_default = "(default)",
                 param_enum={
+                    "(default)": "",
                     "FlashInfer": "FLASHINFER",
                     "Flash Attention": "FLASH_ATTN",
                     "XFormers": "XFORMERS",
@@ -250,8 +257,8 @@ echo env: $CUDA_VISIBLE_DEVICES $CUDA_DEVICE_ORDER
         
         # Prepare extra environment variables
         attention_backend_param = next(param for param in self.runtime_params if param.param_name == "attention_backend")
-        attention_backend_value = attention_backend_param.param_enum[param_list.get("attention_backend", "Flash Attention")]
-        extra_env = {"VLLM_ATTENTION_BACKEND": attention_backend_value}
+        attention_backend_value = attention_backend_param.param_enum[param_list.get("attention_backend", "(default)")]
+        extra_env = {"VLLM_ATTENTION_BACKEND": attention_backend_value} if attention_backend_value != '' else {}
         
         listener.protocol = 'openai'
         return RunningModel(
